@@ -87,7 +87,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
             _csProtoPacketHandler.AddHandler(new CsCmdSystemTransAntiDataHandler());
             _csProtoPacketHandler.AddHandler(new CsCmdTeamInfoGetReqHandler());
             _csProtoPacketHandler.AddHandler(new CsCmdVipServiceExpireReqHandler());
-            _csProtoPacketHandler.AddHandler(new CsCmdBattleActorStopmove());
+            _csProtoPacketHandler.AddHandler(new CsCmdBattleActorStopMoveHandler());
 
             _tpduConsumer.AddHandler(new TpduCmdAuthHandler());
             _tpduConsumer.AddHandler(new TpduCmdSynAckHandler());

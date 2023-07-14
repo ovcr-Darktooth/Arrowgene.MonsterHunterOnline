@@ -33,4 +33,4 @@ From my investigation this looks to be used for a `Scaleform AMP` client, a perf
 Looks to be anti cheat based communication
 
 ## port 8000/UDP (ied-tqos.qq.com )
-Looks to be system / log information based communication
+Looks to be system / log information based communication 

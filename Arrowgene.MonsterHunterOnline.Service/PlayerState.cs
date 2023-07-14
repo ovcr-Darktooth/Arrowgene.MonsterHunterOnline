@@ -984,7 +984,7 @@ public class PlayerState
         // all packets here seem not to be required
         // just testing
         SendPlayerLevelInitNtf();
-        SendPlayerInitBase(); //csv loading
+        //SendPlayerInitBase(); //csv loading
 
         //  SendBruteForce();
 

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Arrowgene.MonsterHunterOnline.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "service start"
+    }
+  }
+}

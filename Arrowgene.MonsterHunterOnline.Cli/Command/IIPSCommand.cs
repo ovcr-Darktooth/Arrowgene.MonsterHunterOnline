@@ -28,7 +28,7 @@ namespace Arrowgene.MonsterHunterOnline.Cli.Command
             //   f.Open("C:\\Users\\nxspirit\\dev\\test\\patch_2018_03_09_10_11.ifs");
 
 
-            string outDir = "C:\\Users\\nxspirit\\dev\\MHO_TOOL\\static_csv\\";
+            string outDir = "E:\\jeux\\MONSTER HUNTER ONLINE\\MHO_TOOL\\static_csv_eng\\";
             if (!Directory.Exists(outDir))
             {
                 Directory.CreateDirectory(outDir);
@@ -36,7 +36,7 @@ namespace Arrowgene.MonsterHunterOnline.Cli.Command
 
             DatFile df = new DatFile();
             foreach (string staticFile in Directory.GetFiles(
-                         "C:\\Users\\nxspirit\\dev\\MHO_TOOL\\extracted\\common\\staticdata\\"))
+                         "E:\\jeux\\MONSTER HUNTER ONLINE\\MHO_TOOL\\staticdata\\"))
             {
                 if (staticFile.EndsWith(".dat"))
                 {

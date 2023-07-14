@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Threading;
+using System.Xml.Linq;
 using Arrowgene.Buffers;
 using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Service.CsProto;
@@ -10,6 +13,7 @@ using Arrowgene.MonsterHunterOnline.Service.CsProto.Enums;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Structures;
 using Arrowgene.MonsterHunterOnline.Service.System.Chat;
 using Arrowgene.MonsterHunterOnline.Service.Tdr;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace Arrowgene.MonsterHunterOnline.Service;
 
@@ -41,29 +45,30 @@ public class PlayerState
     public CSItemListRsp _ItemListRsp;
     public CSTeamInfoNtf _teamInfoNtf;
     public TeamMemberInfo _TeamMemberInfo;
+    public CSPetInitList _petListInitInfo;
     public int LevelId;
 
     public PlayerState(Client client)
     {
-        LevelId = 150301;
+        
 
         _client = client;
         _roleBaseInfo = new CSRoleBaseInfo();
         _roleBaseInfo.RoleID = 1;
         _roleBaseInfo.RoleIndex = 0;
         _roleBaseInfo.Name = "Star";
-        _roleBaseInfo.Gender = 1;
+        _roleBaseInfo.Gender = 0;
         _roleBaseInfo.AvatarSetID = 1;
         _roleBaseInfo.Level = 80;
         _roleBaseInfo.HRLevel = 8;
-        _roleBaseInfo.FaceId = 1;
-        _roleBaseInfo.HairId = 1;
-        _roleBaseInfo.UnderclothesId = 1;
+        _roleBaseInfo.FaceId = 2;
+        _roleBaseInfo.HairId = 2;
+        _roleBaseInfo.UnderclothesId = 5;
         _roleBaseInfo.SkinColor = 1;
-        _roleBaseInfo.HairColor = 1;
-        _roleBaseInfo.InnerColor = 1;
-        _roleBaseInfo.EyeBall = 1;
-        _roleBaseInfo.EyeColor = 1;
+        _roleBaseInfo.HairColor = 2;
+        _roleBaseInfo.InnerColor = 2;
+        _roleBaseInfo.EyeBall = 2;
+        _roleBaseInfo.EyeColor = 2;
 
         // _roleBaseInfo2 = new CSRoleBaseInfo();
         // _roleBaseInfo2.RoleID = 1;
@@ -95,15 +100,67 @@ public class PlayerState
         _playerInitInfo.ParentEntityGUID = 0;
         _playerInitInfo.RandSeed = 1;
         _playerInitInfo.CatCuisineID = 0;
-        _playerInitInfo.FirstEnterLevel = 0;
+        _playerInitInfo.FirstEnterLevel = 1;
         _playerInitInfo.FirstEnterMap = 0;
         _playerInitInfo.PvpPrepareStageState = 0;
         _playerInitInfo.ServerTime = 100;
 
         //spawn location
+        /*LevelId = 150301;
         _playerInitInfo.Pose.t.x = 409.91379f;
         _playerInitInfo.Pose.t.y = 358.74976f;
         _playerInitInfo.Pose.t.z = 100.0f; // height
+        */
+
+        //hub 002 ?
+        /*LevelId = 150201; //actual hub_002
+        //LevelId = 100644; // debug one
+        _playerInitInfo.Pose.t.x = 513.91379f;
+        _playerInitInfo.Pose.t.y = 509.74976f;
+        _playerInitInfo.Pose.t.z = 122.0f; // height*/
+
+        //Mezeporta
+        /*LevelId = 180201;
+        _playerInitInfo.Pose.t.x = 1249.0f;
+        _playerInitInfo.Pose.t.y = 1251.74976f;
+        _playerInitInfo.Pose.t.z = 45.0f; // height*/
+
+        //Millard village
+        LevelId = 180101;
+        _playerInitInfo.Pose.t.x = 676.0f;
+        _playerInitInfo.Pose.t.y = 707.0f;
+        _playerInitInfo.Pose.t.z = 160.0f; // height
+
+        //Farm
+        /*LevelId = 160101;
+        _playerInitInfo.Pose.t.x = 851;
+        _playerInitInfo.Pose.t.y = 974.74976f;
+        _playerInitInfo.Pose.t.z = 30.0f; // height*/
+
+
+        //Guild "town"
+        /*LevelId = 160201;
+        _playerInitInfo.Pose.t.x = 1006.11597f;
+        _playerInitInfo.Pose.t.y = 1273.0204f;
+        _playerInitInfo.Pose.t.z = 110.0f; // height
+        */
+
+        //Glacier
+        /*LevelId = 221037;
+        _playerInitInfo.Pose.t.x = 930f;
+        _playerInitInfo.Pose.t.y = 800.0204f;
+        _playerInitInfo.Pose.t.z = 110.0f; // height*/
+
+        //Arena with instructors (weapon test)
+        /*LevelId = 140900;
+        _playerInitInfo.Pose.t.x = 38.91379f;
+        _playerInitInfo.Pose.t.y = 38.74976f;
+        _playerInitInfo.Pose.t.z = 10.0f; // height*/
+
+        /*LevelId = 100453;
+        _playerInitInfo.Pose.t.x = 38.91379f;
+        _playerInitInfo.Pose.t.y = 38.74976f;
+        _playerInitInfo.Pose.t.z = 300.0f; // height*/
 
         _playerInitInfo.Pose.q.v.x = 10;
         _playerInitInfo.Pose.q.v.y = 10;
@@ -115,7 +172,7 @@ public class PlayerState
         _playerInitInfo.NormalSize = 20;
         _playerInitInfo.MaterialStoreSize = 20;
 
-        _playerInitInfo.Weapon = 1;
+        _playerInitInfo.Weapon = 100005;
 
         //   for (int i = 1; i < 40; i++)
         //   {
@@ -133,236 +190,10 @@ public class PlayerState
 
 
         StreamBuffer ast = new StreamBuffer();
-        ast.WriteByte((byte)TdrTlvMagic.NoVariant);
-
-        int sizePos = ast.Position;
-        ast.WriteInt32(0, Endianness.Big); // size
-        
-        // case 0
-        uint tag = TdrTlv.MakeTag(2, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(7 * 4, Endianness.Big); // size, max 7*4
-        for (int i = 0; i < 7; i++)
-        {
-            ast.WriteInt32(10, Endianness.Big);
-        }
-        
-        // case 1
-        // skips X bytes
-        tag = TdrTlv.MakeTag(3, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big); 
-        
-        // case 2
-        // read int32
-        tag = TdrTlv.MakeTag(4, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
+        ast.WriteUInt32(1, Endianness.Big); //attr id
+        ast.WriteUInt16(1, Endianness.Big); //attr type = CS_ATTR_DATA_BASE
+        ast.WriteUInt16(1, Endianness.Big); //attr type (CS_PROP_SYNC_TYPE) = CS_PROP_SYNC_INT
         ast.WriteInt32(20, Endianness.Big);
-        
-                
-        // case 3
-        // read int32
-        tag = TdrTlv.MakeTag(5, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-                
-        // case 4
-        // read int32
-        tag = TdrTlv.MakeTag(6, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-                
-        // case 5
-        // read int32
-        tag = TdrTlv.MakeTag(7, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-                
-        // case 6
-        // read int32
-        tag = TdrTlv.MakeTag(8, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-                
-        // case 7
-        // read int32
-        tag = TdrTlv.MakeTag(9, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-                
-        // case 8
-        // read int32
-        tag = TdrTlv.MakeTag(10, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-                
-        // case 9
-        // read int32
-        tag = TdrTlv.MakeTag(11, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-        // case 10
-        // read int32
-        tag = TdrTlv.MakeTag(12, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-        // case 11
-        // read int32
-        tag = TdrTlv.MakeTag(13, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-        // case 12
-        // read int32
-        tag = TdrTlv.MakeTag(14, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-        // case 13
-        // read int32
-        tag = TdrTlv.MakeTag(15, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-        // case 14
-        // read int32
-        tag = TdrTlv.MakeTag(16, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big);
-        
-        // case 15
-        // read int32
-        tag = TdrTlv.MakeTag(17, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(7 * 4, Endianness.Big); // size, max 7*4
-        for (int i = 0; i < 7; i++)
-        {
-            ast.WriteInt32(10, Endianness.Big);
-        }
-        
-        // case 16 - 0x10
-        // read int32
-        tag = TdrTlv.MakeTag(18, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(7 * 4, Endianness.Big); // size, max 7*4
-        for (int i = 0; i < 7; i++)
-        {
-            ast.WriteInt32(10, Endianness.Big);
-        }
-        
-        // case 17 - 0x10
-        tag = TdrTlv.MakeTag(19, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(7 * 4, Endianness.Big); // size, max 7*4
-        for (int i = 0; i < 7; i++)
-        {
-            ast.WriteInt32(10, Endianness.Big);
-        }
-        
-        // case 18 - 0x11
-        tag = TdrTlv.MakeTag(20, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(7 * 4, Endianness.Big); // size, max 7*4
-        for (int i = 0; i < 7; i++)
-        {
-            ast.WriteInt32(10, Endianness.Big);
-        }
-        
-        // case 19 - 0x12
-        tag = TdrTlv.MakeTag(21, TdrTlvType.ID_2_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt16(30, Endianness.Big);
-
-        // case 20 - 0x13
-        tag = TdrTlv.MakeTag(22, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(40, Endianness.Big);
-        
-        // case 21 - 0x14
-        tag = TdrTlv.MakeTag(23, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(7 * 4, Endianness.Big); // size, max 7*4
-        for (int i = 0; i < 7; i++)
-        {
-            ast.WriteInt32(10, Endianness.Big);
-        }        
-        
-        // case 22 - 0x15
-        tag = TdrTlv.MakeTag(24, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(7 * 4, Endianness.Big); // size, max 7*4
-        for (int i = 0; i < 7; i++)
-        {
-            ast.WriteInt32(10, Endianness.Big);
-        }
-        
-        // case 23 - 0x16
-        tag = TdrTlv.MakeTag(25, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(7 * 4, Endianness.Big); // size, max 7*4
-        for (int i = 0; i < 7; i++)
-        {
-            ast.WriteInt32(10, Endianness.Big);
-        }        
-        
-        // case 24 - 0x17
-        tag = TdrTlv.MakeTag(26, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(7 * 4, Endianness.Big); // size, max 7*4
-        for (int i = 0; i < 7; i++)
-        {
-            ast.WriteInt32(10, Endianness.Big);
-        }
-        
-        // skip bytes
-        // case 25 - 0x18
-        tag = TdrTlv.MakeTag(27, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big); 
-        
-        // skip bytes
-        // case 26 - 0x19
-        tag = TdrTlv.MakeTag(28, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(20, Endianness.Big); 
-        
-        // skip bytes
-        // case 27 - 0x20
-        tag = TdrTlv.MakeTag(29, TdrTlvType.ID_4_BYTE);
-        TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(7 * 4, Endianness.Big); // size, max 7*4
-        for (int i = 0; i < 7; i++)
-        {
-            ast.WriteInt32(10, Endianness.Big);
-        }
-        
-        
-        
-        
-        for (int i = 28; i < 200; i++)
-        {
-            tag = TdrTlv.MakeTag(i, TdrTlvType.ID_4_BYTE);
-            TdrBuffer.WriteVarUInt32(ast, tag);
-            ast.WriteInt32(7 * 4, Endianness.Big); // size, max 7*4
-            for (int j = 0; j < 7; j++)
-            {
-                ast.WriteInt32(2, Endianness.Big);
-            }
-        }
-
-
-
-        int size = ast.Position - sizePos;
-        ast.Position = sizePos;
-        ast.WriteInt32(size, Endianness.Big); // size
 
 
         _playerInitInfo.Attr = new List<byte>(ast.GetAllBytes());
@@ -464,12 +295,36 @@ public class PlayerState
         //    <Info Name="type3" ID="3"/>
         //    </RegionType>
         //    </LevelInfo>
+        List<int> lv = new List<int>();
+        lv.Add(1);
+        //Maps idk
+        lv.Add(150201);
+        lv.Add(150301);
+        lv.Add(140900);
+        lv.Add(160201);
+        //From equipdata : Chararcter level requirements
+        
+        lv.Add(370009);
+        lv.Add(370012);
+        lv.Add(370013);
+        lv.Add(370014);
+        lv.Add(370015);
+        lv.Add(370017);
+        lv.Add(370019);
+        lv.Add(370023);
+        lv.Add(370025);
+
+        lv.Add(370200);
 
         _playerLevelInitInfo = new CSPlayerLevelInitInfo();
-        _playerLevelInitInfo.UnLockLevelData.Add(new PlayerUnlockLevelInfo()
+        foreach (int k in lv)
         {
-            LevelID = 1
-        });
+            _playerLevelInitInfo.UnLockLevelData.Add(new PlayerUnlockLevelInfo()
+            {
+                LevelID = k
+            });
+            //Logger.Info($"unlocklvldata:{k}\n");
+        }
 
         _spawnPlayer = new CSSpawnPlayer();
         _spawnPlayer.PlayerId = 1;
@@ -477,7 +332,7 @@ public class PlayerState
         _spawnPlayer.Name = _roleBaseInfo.Name;
         _spawnPlayer.Gender = _roleBaseInfo.Gender;
         _spawnPlayer.Scale = 1.0f;
-        _spawnPlayer.NewConnect = 1;
+        _spawnPlayer.NewConnect = 0;
         _spawnPlayer.SendSrvId = 1;
         _spawnPlayer.AvatarSetID = _roleBaseInfo.AvatarSetID;
         _spawnPlayer.Position = new XYZPosition()
@@ -493,7 +348,7 @@ public class PlayerState
         _townInstanceVerifyRsp.LevelEnterType = 0;
 
         _enterInstanceRsp = new CSEnterInstanceRsp();
-        _enterInstanceRsp.InstanceID = 0;
+        _enterInstanceRsp.InstanceID = 1;
         _enterInstanceRsp.Key = "test";
         _enterInstanceRsp.BattleSvr = "127.0.0.1:8143";
         _enterInstanceRsp.RoleId = 0;
@@ -562,11 +417,342 @@ public class PlayerState
         _teamInfoNtf.Team.TownSvr = 1;
         _teamInfoNtf.Team.BattleSvr = 1;
         _teamInfoNtf.Team.Members.Add(_TeamMemberInfo);
+
+
+        _petListInitInfo = new CSPetInitList();
+
+        _petListInitInfo.EntityId = _spawnPlayer.PlayerId;
+        _petListInitInfo.pet1 = new List<byte>();
     }
 
     public void OnChatMsg(ChatMessage chatMessage)
     {
-        if (chatMessage.Message == "test")
+        if (chatMessage.Message == "&")
+        {
+            string dataFile = "data.csv";
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dataFile);
+
+            StreamBuffer ast = new StreamBuffer();
+            CsProtoPacket csp = new CsProtoPacket();
+
+            // Read the CSV file
+            string[] lines = File.ReadAllLines(filePath);
+
+            // Iterate through each line (excluding the header)
+            for (int i = 1; i < lines.Length; i++)
+            {
+                string line = lines[i];
+                string[] values = line.Split(',');
+
+                // Extract the values
+                string name = values[0];
+                int ID = int.Parse(values[1]);
+                int bonus = int.Parse(values[2]);
+                int val_type = int.Parse(values[3]);
+                int val = int.Parse(values[4]);
+
+                // Perform the desired operations with the extracted values
+                ast.SetPositionStart();
+                ast.WriteUInt32(1, Endianness.Big); // EntityID
+                ast.WriteUInt32((uint)ID, Endianness.Big); // attr id
+                ast.WriteInt16((short)bonus, Endianness.Big); // BonusID
+                ast.WriteUInt16((ushort)val_type, Endianness.Big); // attr type (CS_PROP_SYNC_TYPE) = CS_PROP_SYNC_INT
+                ast.WriteInt32(val, Endianness.Big);
+
+                csp = new CsProtoPacket();
+                csp.Cmd = CS_CMD_ID.CS_CMD_ATTR_SYNC_NTF;
+                csp.Body = ast.GetAllBytes();
+                _client.SendCsProto(csp);
+            }
+        }
+        else if (chatMessage.Message == "spawn")
+        {
+            //SendPlayerLevelInitNtf();
+            SendTownServerInitNtf();
+            //SendPlayerSpawn();
+            //SendLoadLevelNtf();
+            //SendInstanceInitNtf();
+            //SendPlayerInitNtf();
+        }
+        else if (chatMessage.Message == "tp")
+        {
+
+            _client.SendCsPacket(NewCsPacket.PlayerTeleport(new CSPlayerTeleport()
+            {
+                SyncTime = 0,
+                NetObjId = 1,
+                Region = 216029,
+                TargetPos = new CSQuatT()
+                {
+                    q = new CSQuat()
+                    {
+                        v = new CSVec3()
+                        {
+                            x = 10,
+                            y = 10,
+                            z = 10
+                        },
+                        w = 10
+                    },
+                    t = new CSVec3()
+                    {
+                        x = 700.11597f,
+                        y = 700.0204f,
+                        z = 150.0f
+                    }
+                },
+                ParentGUID = 1,
+                InitState = 1
+            }
+
+            ));
+
+        }
+        else if (chatMessage.Message == "equip")
+        {
+            //TODO: find how to fucking equip stuff something
+            //TODO: need to extract .dat files on equipment
+
+        }
+        else if (chatMessage.Message == "init")
+        {
+            CSSystemUnlockNtf unlock = new CSSystemUnlockNtf();
+
+            unlock.Reason = 0;
+            unlock.SystemType = 1; // pet system
+
+            StreamBuffer ast = new StreamBuffer();
+            unlock.Write(ast);
+            CsProtoPacket csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_SYSTEM_UNLOCK_NTF;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);
+
+            unlock = new CSSystemUnlockNtf();
+
+            unlock.Reason = 0;
+            unlock.SystemType = 23; // pet dismissal
+
+            ast = new StreamBuffer();
+            unlock.Write(ast);
+            csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_SYSTEM_UNLOCK_NTF;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);
+
+            unlock = new CSSystemUnlockNtf();
+
+            unlock.Reason = 0;
+            unlock.SystemType = 9; // maofan system
+
+            ast = new StreamBuffer();
+            unlock.Write(ast);
+            csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_SYSTEM_UNLOCK_NTF;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);
+
+            unlock = new CSSystemUnlockNtf();
+
+            unlock.Reason = 0;
+            unlock.SystemType = 21; // bounty board
+
+            ast = new StreamBuffer();
+            unlock.Write(ast);
+            csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_SYSTEM_UNLOCK_NTF;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);
+
+            unlock = new CSSystemUnlockNtf();
+
+            unlock.Reason = 0;
+            unlock.SystemType = 35; // hunting
+
+            ast = new StreamBuffer();
+            unlock.Write(ast);
+            csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_SYSTEM_UNLOCK_NTF;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);
+
+            unlock = new CSSystemUnlockNtf();
+
+            unlock.Reason = 0;
+            unlock.SystemType = 26; // hunting game
+
+            ast = new StreamBuffer();
+            unlock.Write(ast);
+            csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_SYSTEM_UNLOCK_NTF;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);
+
+            unlock = new CSSystemUnlockNtf();
+
+            unlock.Reason = 0;
+            unlock.SystemType = 2; // production system
+
+            ast = new StreamBuffer();
+            unlock.Write(ast);
+            csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_SYSTEM_UNLOCK_NTF;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);
+
+            unlock = new CSSystemUnlockNtf();
+
+            unlock.Reason = 0;
+            unlock.SystemType = 3; // hunter star
+
+            ast = new StreamBuffer();
+            unlock.Write(ast);
+            csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_SYSTEM_UNLOCK_NTF;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);
+        }
+        else if (chatMessage.Message == "pi")
+        {
+            CSPetInitList petList = new CSPetInitList();
+
+            petList.EntityId = 1;
+            petList.pet1 = new List<byte>();
+
+            StreamBuffer ast = new StreamBuffer();
+            petList.Write(ast);
+
+            CsProtoPacket csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_PET_INIT_LIST;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);
+
+        }
+        else if (chatMessage.Message == "pa")
+        {
+            CSPetAppearNtf felyn = new CSPetAppearNtf();
+            felyn.NetID = 3;
+            felyn.OwnerID = 1;
+            felyn.InfoID = 3;
+            felyn.EntGUID = 3;
+            felyn.PetUID = 3;
+            //felyn.PetUID = 10801;
+            felyn.Name = "SPAWNMF";
+            felyn.Pose = new CSQuatT()
+            {
+                q = new CSQuat()
+                {
+                    v = new CSVec3()
+                    {
+                        x = _playerInitInfo.Pose.q.v.x,
+                        y = _playerInitInfo.Pose.q.v.y,
+                        z = _playerInitInfo.Pose.q.v.z
+                    },
+                    w = _playerInitInfo.Pose.q.w,
+                },
+                t = new CSVec3()
+                {
+                    x = _playerInitInfo.Pose.t.x,
+                    y = _playerInitInfo.Pose.t.y,
+                    z = _playerInitInfo.Pose.t.z
+                },
+            };
+            felyn.AvatarSetID = 2;
+            felyn.Health = 100;
+            felyn.Equip = new List<int>();
+            felyn.Attr = new List<byte>();
+            felyn.Buff = new List<byte>();
+            felyn.RandAttrs = new CSPetRandAttrs()
+            {
+                Name = "HELLO",
+                TalkStype = 3, //TalkStyle ? cattalk.dat
+                Quality = 20,
+                Character = 1,
+                AtkTarget = 1,
+                AtkMode = 1,
+                Skin = 14,
+                SupportSkill = 10500,
+            };
+            felyn.Support = 1;
+            felyn.Skill = new List<CSPetSkill>();
+            felyn.GrowHighDay = 0;
+            felyn.GrowHeight = 0;
+
+
+            CSPetAppearNtfList petList = new CSPetAppearNtfList();
+            petList.Appear.Add(felyn);
+
+            //Writing all info into the buffer
+            /*ast = new StreamBuffer();
+            felyn.Write(ast);
+
+            csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_PET_APPEAR_NTF_LIST;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);*/
+
+            _client.SendCsPacket(NewCsPacket.PetAppearNtfList(petList));
+        }
+        else if (chatMessage.Message == "palico")
+        {
+
+            CSPetAddSync palico = new CSPetAddSync();
+            palico.PetID = 10801;
+            palico.Idx = 3;
+            palico.UID = 3;
+            palico.sex = 0;
+            palico.giftSkill = 200;
+            palico.RandAttrs = new CSPetRandAttrs()
+            {
+                Name = "felyn",
+                TalkStype = 3, //TalkStyle ? cattalk.dat
+                Quality = 20,
+                Character = 1,
+                AtkTarget = 1,
+                AtkMode = 1,
+                Skin = 14,
+                SupportSkill = 10500,
+            };
+
+            StreamBuffer ast = new StreamBuffer();
+            palico.Write(ast);
+            CsProtoPacket csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_PET_ADD_SYNC;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);
+
+
+            palico = new CSPetAddSync();
+            palico.PetID = 10801;
+            palico.Idx = 4;
+            palico.UID = 4;
+            palico.sex = 0;
+            palico.giftSkill = 200;
+            palico.RandAttrs = new CSPetRandAttrs()
+            {
+                Name = "felyn2",
+                TalkStype = 3, //TalkStyle ? cattalk.dat
+                Quality = 20,
+                Character = 1,
+                AtkTarget = 1,
+                AtkMode = 1,
+                Skin = 14,
+                SupportSkill = 10500,
+            };
+
+            ast = new StreamBuffer();
+            palico.Write(ast);
+            csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_PET_ADD_SYNC;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProto(csp);
+
+        }
+        else if (chatMessage.Message == "stop")
+        {
+
+        }
+        else if (chatMessage.Message == "test")
         {
             StreamBuffer ast = new StreamBuffer();
             ast.WriteUInt32(1, Endianness.Big); //EntityID
@@ -722,9 +908,9 @@ public class PlayerState
                     {
                         targetPos = new CSVec3() { x = 1.0f, y = 1.0f, z = 1.0f }
                     })
-                {
-                    EntityId = 1
-                }
+            {
+                EntityId = 1
+            }
             ));
 
             _client.SendCsPacket(NewCsPacket.ActorLocomotion(new CSActorLocomotion()
@@ -1089,6 +1275,12 @@ public class PlayerState
     public void SendPlayerLevelInitNtf()
     {
         _client.SendCsPacket(NewCsPacket.PlayerLevelInitNtf(_playerLevelInitInfo));
+    }
+
+    public void SendPetListInit()
+    {
+        _client.SendCsPacket(NewCsPacket.PetInitList(_petListInitInfo));
+
     }
 
     public void SendPlayerSpawn()

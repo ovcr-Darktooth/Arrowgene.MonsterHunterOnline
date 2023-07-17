@@ -188,9 +188,9 @@ public class CharacterManager
         structure.Gender = character.Gender;
         structure.IsGm = 0;
         //spawn location
-        structure.Pose.t.x = 409.91379f;
-        structure.Pose.t.y = 358.74976f;
-        structure.Pose.t.z = 100.0f; // height
+        structure.Pose.t.x = 656.78711f;
+        structure.Pose.t.y = 740.2207f;
+        structure.Pose.t.z = 143.72086f; // height
         structure.Pose.q.v.x = 10;
         structure.Pose.q.v.y = 10;
         structure.Pose.q.v.z = 10;

@@ -37,7 +37,7 @@ public class EnterLevelNtfHandler : CsProtoStructureHandler<EnterLevelNtf>
 
             InstanceInitInfo instanceInitInfo = verifyRsp.InstanceInitInfo;
             instanceInitInfo.BattleGroundId = 0;
-            instanceInitInfo.LevelId = 150301;
+            instanceInitInfo.LevelId = 180101; //milard village
             instanceInitInfo.CreateMaxPlayerCount = 4;
             instanceInitInfo.GameMode = GameMode.Town;
             instanceInitInfo.TimeType = TimeType.Noon;

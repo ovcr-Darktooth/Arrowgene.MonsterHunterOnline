@@ -396,6 +396,150 @@ public class PlayerState
             PlayerTeleport.Structure.InitState = 1;
             _client.SendCsProtoStructurePacket(PlayerTeleport);
         }
+        else if (chatMessage.Message == "su") //system unlock (new menu in the bottom bar like P/I/ keys) 
+        {
+            CSSystemUnlockNtf unlock = new CSSystemUnlockNtf();
+
+            unlock.Reason = 0;
+            unlock.SystemType = 1; // pet system
+
+            StreamBuffer ast = new StreamBuffer();
+            unlock.Write(ast);
+            CsProtoPacket csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_SYSTEM_UNLOCK_NTF;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProtoPacket(csp);
+        }
+        else if (chatMessage.Message == "pi") // palico init, never been useful
+        {
+            CSPetInitList petList = new CSPetInitList();
+
+            petList.EntityId = 1;
+            petList.pet1 = new List<byte>();
+
+            StreamBuffer ast = new StreamBuffer();
+            petList.Write(ast);
+
+            CsProtoPacket csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_PET_INIT_LIST;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProtoPacket(csp);
+        } 
+        else if (chatMessage.Message == "pa") // gives 2 palico, needs command "su" to unlock the system palico to see the palicos
+                                              // Going through the npc "cat recruit" would be a better way to get a cleaner cat ? They are randomly generated in the npc ?
+                                              // using this while in a village make the animation of recruit
+        {
+            //1st palico given
+            CSPetAddSync palico = new CSPetAddSync();
+            palico.PetID = 10003; // Should be a good id : pet.dat_pet_information.csv
+            palico.Idx = 3; //unique id of the palico
+            palico.UID = 3; //guid ?
+            palico.sex = 1; // no data on this, 1 is ok tho
+            palico.giftSkill = 248; // idk
+            palico.RandAttrs = new CSPetRandAttrs()
+            {
+                Name = "felyn",
+                TalkStype = 3, //TalkStyle ? cattalk.dat ?
+                Quality = 1,  //pet.dat_quality.csv goes from 0 to 5
+                Character = 1, //pet.dat_character.csv, goes from 1 to 18
+                AtkTarget = 1, //pet.dat_aggressive_tendency.csv goes from 1 to 5
+                AtkMode = 1,   //pet.dat_attack_method.csv goes from 1 to 7
+                Skin = 3,      // corelated to petid, pet.dat_skin.csv (values: 1/2/3/4/5/7/8/14)
+                SupportSkill = 10500, //pet.dat_support_skills.csv (10500 to 10504)
+            };
+
+            StreamBuffer ast = new StreamBuffer();
+            palico.Write(ast);
+            CsProtoPacket csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_PET_ADD_SYNC;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProtoPacket(csp);
+
+            //2nd palico given
+            /*palico = new CSPetAddSync();
+            palico.PetID = 10801;
+            palico.Idx = 4;
+            palico.UID = 4;
+            palico.sex = 0;
+            palico.giftSkill = 200;
+            palico.RandAttrs = new CSPetRandAttrs()
+            {
+                Name = "felyn2",
+                TalkStype = 3, //TalkStyle ? cattalk.dat
+                Quality = 20,
+                Character = 1,
+                AtkTarget = 1,
+                AtkMode = 1,
+                Skin = 14,
+                SupportSkill = 10500,
+            };
+
+            ast = new StreamBuffer();
+            palico.Write(ast);
+            csp = new CsProtoPacket();
+            csp.Cmd = CS_CMD_ID.CS_CMD_PET_ADD_SYNC;
+            csp.Body = ast.GetAllBytes();
+            _client.SendCsProtoPacket(csp);*/
+        }
+        else if (chatMessage.Message == "sp") // spawn palico, got a crash everytime I use this...
+                                              // command i've done : su, pi, pa, sp
+                                              // maybe it is missing attr ?
+        {
+            CSPetAppearNtf felyn = new CSPetAppearNtf();
+            felyn.NetID = 110; // netobjid ? should not be same as player
+            felyn.OwnerID = (int)_client.Character.Id; 
+            felyn.InfoID = 3; // idk, took idx of palico
+            felyn.EntGUID = 3; // idk, took uid of palico
+            felyn.PetUID = 3; // petid  or uid of palico ? 
+            //felyn.PetUID = 10801;
+            felyn.Name = "SPAWNMF"; // yea spawn mf
+            felyn.Pose = new CSQuatT() //same as player when you spawn
+            {
+                q = new CSQuat()
+                {
+                    v = new CSVec3()
+                    {
+                        x = 10f,
+                        y = 10f,
+                        z = 10f
+                    },
+                    w = 10f,
+                },
+                t = new CSVec3()
+                {
+                    x = 656.78711f,
+                    y = 740.2207f,
+                    z = 143.72086f
+                },
+            };
+            felyn.AvatarSetID = 2; // idk
+            felyn.Health = 100;
+            felyn.Equip = new List<int>();
+            felyn.Attr = new List<byte>(); //same as player, it maybe needs some to spawn ? petattribute.dat_Attribute.csv
+            felyn.Buff = new List<byte>();
+            felyn.RandAttrs = new CSPetRandAttrs()
+            {
+                Name = "felyn",
+                TalkStype = 3, //TalkStyle ? cattalk.dat ?
+                Quality = 1,  //pet.dat_quality.csv goes from 0 to 5
+                Character = 1, //pet.dat_character.csv, goes from 1 to 18
+                AtkTarget = 1, //pet.dat_aggressive_tendency.csv goes from 1 to 5
+                AtkMode = 1,   //pet.dat_attack_method.csv goes from 1 to 7
+                Skin = 3,      // corelated to petid, pet.dat_skin.csv (values: 1/2/3/4/5/7/8/14)
+                SupportSkill = 10500, //pet.dat_support_skills.csv (10500 to 10504)
+            };
+            felyn.Support = 1; // idk
+            felyn.Skill = new List<CSPetSkill>(); // even with skills it crashes, had made some but lost the code sorry
+            felyn.GrowHighDay = 0; //idk
+            felyn.GrowHeight = 0; //idk
+
+
+            CSPetAppearNtfList petList = new CSPetAppearNtfList();
+            petList.Appear.Add(felyn);
+
+            _client.SendCsPacket(NewCsPacket.PetAppearNtfList(petList));
+        }
+        
     }
 
     public void SendBruteForceT()

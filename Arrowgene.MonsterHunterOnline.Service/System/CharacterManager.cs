@@ -188,9 +188,9 @@ public class CharacterManager
         structure.Gender = character.Gender;
         structure.IsGm = 0;
         //spawn location
-        structure.Pose.t.x = 409.91379f;
-        structure.Pose.t.y = 358.74976f;
-        structure.Pose.t.z = 100.0f; // height
+        structure.Pose.t.x = 404.51379f;
+        structure.Pose.t.y = 396.74976f;
+        structure.Pose.t.z = 85.0f; // height
         structure.Pose.q.v.x = 10;
         structure.Pose.q.v.y = 10;
         structure.Pose.q.v.z = 10;
@@ -327,7 +327,7 @@ public class CharacterManager
         sync.EntityId = character.Id;
         sync.AttrId = 73;
         sync.BonusId = 1;
-        sync.Data.Int = 100; // speed
+        sync.Data.Int = 400; // speed
         attrs.Add(sync);
 
         sync = new AttrSync();

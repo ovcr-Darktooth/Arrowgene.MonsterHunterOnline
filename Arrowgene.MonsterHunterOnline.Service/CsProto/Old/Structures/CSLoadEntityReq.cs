@@ -33,6 +33,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Structures
 
     /// <summary>
     /// 客户端去拉根据拉Entity信息
+    /// The client goes to pull the Entity information according to the pull
     /// </summary>
     public class CSLoadEntityReq : IStructure
     {
@@ -77,8 +78,8 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Structures
             int logicEntityTypeCount = buffer.ReadInt32(Endianness.Big);
             for (int i = 0; i < logicEntityTypeCount; i++)
             {
-                uint LogicEntityTypeEntry = buffer.ReadUInt32(Endianness.Big);
-                LogicEntityType.Add(LogicEntityTypeEntry);
+                //uint LogicEntityTypeEntry = buffer.ReadUInt32(Endianness.Big);
+                //LogicEntityType.Add(LogicEntityTypeEntry);
             }
         }
 

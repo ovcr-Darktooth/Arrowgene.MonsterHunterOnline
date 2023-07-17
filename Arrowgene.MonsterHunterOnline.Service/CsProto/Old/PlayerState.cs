@@ -372,7 +372,8 @@ public class PlayerState
             CsProtoStructurePacket<PlayerTeleport> PlayerTeleport = CsProtoResponse.PlayerTeleport;
             PlayerTeleport.Structure.SyncTime = 1;
             PlayerTeleport.Structure.NetObjId = _client.Character.Id;
-            PlayerTeleport.Structure.Region = 180201; // 180201 = meze
+            //PlayerTeleport.Structure.Region = 180201; // 180201 = meze
+            PlayerTeleport.Structure.Region = 100101;
             PlayerTeleport.Structure.TargetPos = new CSQuatT()
             {
                 q = new CSQuat()
@@ -387,16 +388,54 @@ public class PlayerState
                 },
                 t = new CSVec3()
                 {
-                    x = 1169.375f,
-                    y = 1186.6145f,
-                    z = 32.703117f
+                    x = 1669.375f,
+                    y = 1586.6145f,
+                    z = 150.703117f
                 }
             };
             PlayerTeleport.Structure.ParentGuid = 1;
             PlayerTeleport.Structure.InitState = 1;
             _client.SendCsProtoStructurePacket(PlayerTeleport);
         }
-    }
+        else if (chatMessage.Message == "es")
+        {
+
+            CsProtoStructurePacket<CSSpawnSrvEntList> sendEntity = CsProtoResponse.SpawnSrvEntList;
+
+
+            sendEntity.Structure.InitMode = 3;
+            sendEntity.Structure.EntList = new List<CSSpawnSrvEnt>();
+
+            CSSpawnSrvEnt leNPC = new CSSpawnSrvEnt();
+            leNPC.Name = "黑心的肯";
+            leNPC.NetObjID = 63;
+            leNPC.Position = new XYZPosition()
+            {
+                x = 408.59229f,
+                y = 366.01309f,
+                z = 88.239403f,
+            };// 408.59229,366.01309,88.239403
+            leNPC.Rotation = new Quaternion()
+            {
+                x = 10f,
+                y = 10f,
+                z = 10f,
+                w = 10f
+            };//0.99984771,0,0,-0.017452469
+            leNPC.Scale = 1.0f;
+
+            sendEntity.Structure.EntList.Add(leNPC);
+
+            _client.SendCsProtoStructurePacket(sendEntity);
+
+            CsProtoStructurePacket<CSEntityAppearNtfIDList> loadEntity = CsProtoResponse.EntityAppearNtfIDList;
+
+            loadEntity.Structure.InitType = 3;
+            loadEntity.Structure.LogicEntityID = new List<uint> { 63 };
+            loadEntity.Structure.LogicEntityType = new List<uint> { 1 };
+            //_client.SendCsProtoStructurePacket(loadEntity);
+        }
+    } 
 
     public void SendBruteForceT()
     {

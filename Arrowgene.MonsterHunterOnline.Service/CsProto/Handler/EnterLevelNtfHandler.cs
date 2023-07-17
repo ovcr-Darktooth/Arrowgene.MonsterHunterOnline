@@ -4,6 +4,7 @@ using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Enums;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Structures;
 using Arrowgene.MonsterHunterOnline.Service.System;
+using System.Collections.Generic;
 
 namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Handler;
 
@@ -25,6 +26,16 @@ public class EnterLevelNtfHandler : CsProtoStructureHandler<EnterLevelNtf>
     {
         _characterManager.SyncAllAttr(client);
 
+
+
+        //TODO: Entities should be spawn/sent here ?
+        /*
+        CsProtoStructurePacket<CSEntityAppearNtfIDList> loadEntity = CsProtoResponse.EntityAppearNtfIDList;
+        loadEntity.Structure.InitType = 1;
+        loadEntity.Structure.LogicEntityID = new List<uint> { 63 };
+        loadEntity.Structure.LogicEntityType = new List<uint> { 6 };
+        client.SendCsProtoStructurePacket(loadEntity);*/
+
         if (!client.Character.IsSync)
         {
 
@@ -37,9 +48,11 @@ public class EnterLevelNtfHandler : CsProtoStructureHandler<EnterLevelNtf>
 
             InstanceInitInfo instanceInitInfo = verifyRsp.InstanceInitInfo;
             instanceInitInfo.BattleGroundId = 0;
-            instanceInitInfo.LevelId = 150301;
+            instanceInitInfo.LevelId = 150101;
+            //instanceInitInfo.LevelId = 100101;
             instanceInitInfo.CreateMaxPlayerCount = 4;
             instanceInitInfo.GameMode = GameMode.Town;
+            //instanceInitInfo.GameMode = (GameMode) 27; //solo ???
             instanceInitInfo.TimeType = TimeType.Noon;
             instanceInitInfo.WeatherType = WeatherType.Sunny;
             instanceInitInfo.Time = 1;

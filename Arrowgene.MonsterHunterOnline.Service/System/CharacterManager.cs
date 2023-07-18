@@ -327,7 +327,7 @@ public class CharacterManager
         sync.EntityId = character.Id;
         sync.AttrId = 73;
         sync.BonusId = 1;
-        sync.Data.Int = 100; // speed
+        sync.Data.Int = 400; // speed
         attrs.Add(sync);
 
         sync = new AttrSync();

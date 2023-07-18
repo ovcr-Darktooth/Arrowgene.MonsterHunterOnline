@@ -396,6 +396,35 @@ public class PlayerState
             PlayerTeleport.Structure.InitState = 1;
             _client.SendCsProtoStructurePacket(PlayerTeleport);
         }
+        else if (chatMessage.Message == "fa")
+        {
+            CsProtoStructurePacket<CSFriendAddRsp> addFriend = CsProtoResponse.FriendAddRsp;
+
+            addFriend.Structure.Ret = 0;
+            addFriend.Structure.Friender = new CSFriendInfo();
+            addFriend.Structure.RoleDBID = 5;
+            addFriend.Structure.NetID = 120;
+            addFriend.Structure.Level = 5;
+            addFriend.Structure.RoleName = "test";
+            addFriend.Structure.Online = 0; 
+            addFriend.Structure.FarmPoint = 10;
+            addFriend.Structure.FarmCanBGatheredCount = 5;
+            addFriend.Structure.LineId = 1;
+
+            _client.SendCsProtoStructurePacket(addFriend);
+
+            addFriend.Structure.Ret = 1;
+            addFriend.Structure.Friender = new CSFriendInfo();
+            addFriend.Structure.RoleDBID = 4;
+            addFriend.Structure.NetID = 121;
+            addFriend.Structure.Level = 6;
+            addFriend.Structure.RoleName = "test2";
+            addFriend.Structure.Online = 1;
+            addFriend.Structure.FarmPoint = 11;
+            addFriend.Structure.FarmCanBGatheredCount = 6;
+            addFriend.Structure.LineId = 2;
+            _client.SendCsProtoStructurePacket(addFriend);
+        }
     }
 
     public void SendBruteForceT()

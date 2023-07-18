@@ -70,6 +70,8 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Core
 
         public static CsProtoStructurePacket<UpdateRushState> UpdateRushState =>
             new(CS_CMD_ID.CS_CMD_UPDATE_RUSHSTATE);
+        public static CsProtoStructurePacket<CSFriendAddRsp> FriendAddRsp =>
+            new(CS_CMD_ID.CS_CMD_FRIEND_ADD_RSP);
 
         /// <summary>
         /// C2表现FIFO同步消息

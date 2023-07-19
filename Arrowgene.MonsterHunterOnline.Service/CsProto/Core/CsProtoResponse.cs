@@ -70,6 +70,13 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Core
 
         public static CsProtoStructurePacket<UpdateRushState> UpdateRushState =>
             new(CS_CMD_ID.CS_CMD_UPDATE_RUSHSTATE);
+        public static CsProtoStructurePacket<CSNpcShopBuyItemReq> NPCShopBuyItemReq =>
+            new(CS_CMD_ID.CS_CMD_NPCSHOP_BUYITEM_REQ);
+
+        public static CsProtoStructurePacket<CSNpcShopBuyItemRsp> NPCShopBuyItemRsp =>
+            new(CS_CMD_ID.CS_CMD_NPCSHOP_BUYITEM_RSP);
+        public static CsProtoStructurePacket<CSItemMgrAddItemNtf> ItemMgrAddItemNtf =>
+            new(CS_CMD_ID.CS_CMD_ITEMMGR_ADD_ITEM_NTF);
 
         /// <summary>
         /// C2表现FIFO同步消息

@@ -366,6 +366,33 @@ public class PlayerState
             prevLevelId = levelId;
             levelId = instanceInitInfo.LevelId;
         }
+        else if (chatMessage.Message == "money")
+        {
+
+            CsProtoStructurePacket<AttrSync> sync = CsProtoResponse.AttrSync;
+            
+            sync.Structure.EntityId = _client.Character.Id;
+            sync.Structure.AttrId = 75;
+            sync.Structure.BonusId = 0;
+            sync.Structure.Data.Int = 999910; // gold
+            _client.SendCsProtoStructurePacket(sync);
+
+            sync.Structure.AttrId = 76;
+            sync.Structure.BonusId = 0;
+            sync.Structure.Data.Int = 999909; // silver
+            _client.SendCsProtoStructurePacket(sync);
+
+
+            /*sync.AttrId = 77;
+            sync.BonusId = 0;
+            sync.Data.Int = 999908;
+            attrSyncList.Structure.Attr.Add(sync);
+            sync.AttrId = 78;
+            sync.BonusId = 0;
+            sync.Data.Int = 999907;
+            attrSyncList.Structure.Attr.Add(sync);*/
+
+        }
         else if (chatMessage.Message == "tp")
         {
 

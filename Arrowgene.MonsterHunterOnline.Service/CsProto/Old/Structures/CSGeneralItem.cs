@@ -48,9 +48,10 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Structures
         public void Write(IBuffer buffer)
         {
             ushort dataCount = (ushort)Data.Count;
-            buffer.WriteUInt16(dataCount, Endianness.Big);
+            //buffer.WriteUInt16(dataCount, Endianness.Big); // No need that for now
             for (int i = 0; i < dataCount; i++)
             {
+                Logger.Info($"{Data[i]}");
                 buffer.WriteByte(Data[i]);
             }
         }

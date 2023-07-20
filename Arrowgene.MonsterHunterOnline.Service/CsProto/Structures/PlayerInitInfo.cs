@@ -215,7 +215,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Structures
         /// <summary>
         /// 背包道具数据
         /// </summary>
-        public List<byte> BagItem { get; }
+        public List<byte> BagItem { get; set; }
 
         /// <summary>
         /// 装备数据

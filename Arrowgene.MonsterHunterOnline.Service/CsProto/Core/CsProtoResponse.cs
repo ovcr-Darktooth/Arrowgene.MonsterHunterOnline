@@ -78,6 +78,12 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Core
         public static CsProtoStructurePacket<CSItemMgrAddItemNtf> ItemMgrAddItemNtf =>
             new(CS_CMD_ID.CS_CMD_ITEMMGR_ADD_ITEM_NTF);
 
+        public static CsProtoStructurePacket<CSSelectHuntingBagRsp> SelectHuntingBagRsp =>
+            new(CS_CMD_ID.CS_CMD_SELECT_HUNTING_BAG_RSP);
+
+        public static CsProtoStructurePacket<CSMonsterSizeNtf> MonsterSizeNtf =>
+            new(CS_CMD_ID.CS_CMD_MONSTER_SIZE_NTF);
+
         /// <summary>
         /// C2表现FIFO同步消息
         /// C2 represents FIFO synchronization messages

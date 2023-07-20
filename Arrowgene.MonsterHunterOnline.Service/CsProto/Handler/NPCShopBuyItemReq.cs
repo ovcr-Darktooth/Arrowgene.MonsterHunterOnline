@@ -20,7 +20,7 @@ public class NPCShopBuyItemReq : CsProtoStructureHandler<CSNpcShopBuyItemReq>
 
     public override void Handle(Client client, CSNpcShopBuyItemReq req)
     {
-        Logger.Info($"grid: {req.Grid}\ncolumn: {req.Column}");
+        Logger.Info($"\ngrid: {req.Grid}\ncolumn: {req.Column}");
         //Just the return to say purchase is ok
         CsProtoStructurePacket<CSNpcShopBuyItemRsp> buyItemRsp = CsProtoResponse.NPCShopBuyItemRsp;
         buyItemRsp.Structure.Ret = 0;
@@ -42,47 +42,47 @@ public class NPCShopBuyItemReq : CsProtoStructureHandler<CSNpcShopBuyItemReq>
         // Make tag with ID2
         uint tag = TdrTlv.MakeTag(2, TdrTlvType.ID_8_BYTE);
         TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteUInt64(1, Endianness.Big); // 1, we will go for ones
+        ast.WriteUInt64(3, Endianness.Big); // character.bagid ? character ?
 
         // Make tag with ID 3
         tag = TdrTlv.MakeTag(3, TdrTlvType.ID_4_BYTE);
         TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt32(1, Endianness.Big); // 1
+        ast.WriteInt32(1, Endianness.Big);  // must be id of item for sure (so 1 = potion)
 
         tag = TdrTlv.MakeTag(4, TdrTlvType.ID_1_BYTE);
         TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteByte(1); // 1
+        ast.WriteByte(1);                   // category ? 256 category ? dumb to put again the category but why not. 1 = consumables
 
         tag = TdrTlv.MakeTag(5, TdrTlvType.ID_2_BYTE);
         TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt16(2, Endianness.Big); // 1
+        ast.WriteInt16(1, Endianness.Big);  // carrylimit ? count ?
 
         tag = TdrTlv.MakeTag(6, TdrTlvType.ID_2_BYTE);
         TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteInt16(2, Endianness.Big); // 1
+        ast.WriteInt16(1, Endianness.Big);  // stacklimit ? max i've seen is 9999. or count ?
 
         tag = TdrTlv.MakeTag(7, TdrTlvType.ID_1_BYTE);
         TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteByte(1); // 1
+        ast.WriteByte(1);                   // item level ? or rarity ? count ?
 
         tag = TdrTlv.MakeTag(8, TdrTlvType.ID_1_BYTE);
         TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteByte(1); // 1
+        ast.WriteByte(1);                   // item level ? or rarity ? count ?
 
-        // Tag 9
+        // Tag 10
         tag = TdrTlv.MakeTag(10, TdrTlvType.ID_4_BYTE);
         TdrBuffer.WriteVarUInt32(ast, tag);
-        var data1 = new List<byte>() { 0x00, 0x00, 0x00, 0x01 };
+        var data1 = new List<byte>() { /*0x00, 0x00, 0x00, 0x00*/ };
         ast.WriteUInt32((uint)data1.Count, Endianness.Big); // Count of elements. This should be capped at 32 max.
         for (var i = 0; i < data1.Count; i++)
         {
             ast.WriteByte(data1[i]);
         }
 
-        // Tag 10
+        // Tag 11
         tag = TdrTlv.MakeTag(11, TdrTlvType.ID_4_BYTE);
         TdrBuffer.WriteVarUInt32(ast, tag);
-        var data2 = new List<Int32>() { 0, 0, 0, 1 };
+        var data2 = new List<Int32>() { /*0, 0, 0, 0*/ };
         ast.WriteUInt32((uint)data2.Count, Endianness.Big); // Count of elements. This should be capped at 32 max.
         for (var i = 0; i < data2.Count; i++)
         {
@@ -101,24 +101,26 @@ public class NPCShopBuyItemReq : CsProtoStructureHandler<CSNpcShopBuyItemReq>
         unItem.ItemType = 1; // consumable (potion test) (4 bytes)
         unItem.ItemColumn = 1; // slot (2 bytes)
         unItem.ItemGrid = 1; // item grid, wtf is this ?? (2 bytes)
-        unItem.ItemData = new CSGeneralItem()  // what should it have ? id/count ? (X bytes) ??? Name ???
+        unItem.ItemData = new CSGeneralItem() // data built just above
         {
             Data = finalData.GetAllBytes().ToList()
         };
         itemAdd.Structure.ItemList.Add(unItem);
 
+        Logger.Info($"Item Data length: {finalData.GetAllBytes().ToList().Count}");
+
         client.SendCsProtoStructurePacket(itemAdd);
 
 
-        /* This is what he came with
+        /* This is what Ando came with
         
-        (2, ID_8_BYTE): uint64 // what does need 64 ? bagid ?
+        (2, ID_8_BYTE): uint64 // what does need 64 ? character.bag ? bagid ?
         (3, ID_4_BYTE): int32  // id, goes more than 32767 so not a 16
         (4, ID_1_BYTE): uint8  // category ?
-        (5, ID_2_BYTE): int16  // carrylimit ?
-        (6, ID_2_BYTE): int16  // stacklimit ? max i've seen is 9999
-        (7, ID_1_BYTE): uint8  // item level ? or rarity ?
-        (8, ID_1_BYTE): uint8  // rarity ? or item level ?
+        (5, ID_2_BYTE): int16  // carrylimit ? count ?
+        (6, ID_2_BYTE): int16  // stacklimit ? max i've seen is 9999. or count ?
+        (7, ID_1_BYTE): uint8  // item level ? or rarity ? count ?
+        (8, ID_1_BYTE): uint8  // rarity ? or item level ? count ?
         (10, ID_4_BYTE):       // 
             uint32 count;
             uint8 data[count]; // max 32 bytes
@@ -149,47 +151,5 @@ public class NPCShopBuyItemReq : CsProtoStructureHandler<CSNpcShopBuyItemReq>
 
         //else if no place, do not buy
 
-
-        /*
-         //Start
-        dataList.Add((byte)TdrTlvMagic.NoVariant);
-        //8 bytes (uint64)
-        dataList.Add(0x00);
-        dataList.Add(0x00);
-        dataList.Add(0x00);
-        dataList.Add(0x00);
-        dataList.Add(0x00);
-        dataList.Add(0x00);
-        dataList.Add(0x01);
-
-        //4 bytes
-        dataList.Add(0x00);
-        dataList.Add(0x00);
-        dataList.Add(0x00);
-        dataList.Add(0x01);
-
-        //1 b
-        dataList.Add(0x01);
-
-        //2 b
-        dataList.Add(0x00);
-        dataList.Add(0x01);
-
-        //2 b
-        dataList.Add(0x00);
-        dataList.Add(0x01);
-
-        //1 b
-        dataList.Add(0x01);
-
-        //1 b
-        dataList.Add(0x01);
-
-
-        //4
-
-
-        //4
-*/
     }
 }

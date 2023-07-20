@@ -31,10 +31,11 @@ public class PlayerState
     public int levelId { get; set; }
     public int prevLevelId { get; set; }
 
+
     public PlayerState(Client client)
     {
         _client = client;
-
+        
 
         StreamBuffer ast = new StreamBuffer();
         ast.WriteByte((byte)TdrTlvMagic.NoVariant);
@@ -399,7 +400,7 @@ public class PlayerState
             CsProtoStructurePacket<PlayerTeleport> PlayerTeleport = CsProtoResponse.PlayerTeleport;
             PlayerTeleport.Structure.SyncTime = 1;
             PlayerTeleport.Structure.NetObjId = _client.Character.Id;
-            PlayerTeleport.Structure.Region = 180201; // 180201 = meze
+            PlayerTeleport.Structure.Region = 604001; // 180201 = meze
             PlayerTeleport.Structure.TargetPos = new CSQuatT()
             {
                 q = new CSQuat()
@@ -414,15 +415,65 @@ public class PlayerState
                 },
                 t = new CSVec3()
                 {
-                    x = 1169.375f,
-                    y = 1186.6145f,
-                    z = 32.703117f
+                    x = 20f,
+                    y = 18.6145f,
+                    z = 30.703117f
                 }
             };
             PlayerTeleport.Structure.ParentGuid = 1;
             PlayerTeleport.Structure.InitState = 1;
             _client.SendCsProtoStructurePacket(PlayerTeleport);
         }
+        else if (chatMessage.Message == "mz")
+        {
+            CsProtoStructurePacket<CSMonsterSizeNtf> monsterSize = CsProtoResponse.MonsterSizeNtf; 
+
+            monsterSize.Structure.Infos = new List<CSMonsterSizeInfo>();
+            CSMonsterSizeInfo monsterSizeInfo = new CSMonsterSizeInfo();
+            //monsterSizeInfo.MonsterID = 66;
+            monsterSizeInfo.MinSize = 1000f;
+            monsterSizeInfo.MaxSize = 2000f;
+            monsterSizeInfo.SizeLevel = 1;
+
+            //monsterSize.Structure.Infos.Add(monsterSizeInfo);
+
+            //_client.SendCsProtoStructurePacket(monsterSize);
+
+            for(int i = 1;i<105;i++)
+            {
+                if (i != 98) { 
+                    monsterSizeInfo.MonsterID = i;
+
+                    monsterSize.Structure.Infos.Add(monsterSizeInfo);
+                }
+            }
+            _client.SendCsProtoStructurePacket(monsterSize);
+        }
+        else if (chatMessage.Message == "bag")
+        {
+            CharacterManager characterManager = new CharacterManager(Server.Database);
+            CsProtoStructurePacket<PlayerInitInfo> playerInitInfo = CsProtoResponse.PlayerInitInfo;
+            characterManager.PopulatePlayerInitInfo(_client, _client.Character, playerInitInfo.Structure);
+            _client.SendCsProtoStructurePacket(playerInitInfo);
+
+        }
+        else if (chatMessage.Message == "hb")
+        {
+            CsProtoStructurePacket<CSSelectHuntingBagRsp>  huntingbagRsp = CsProtoResponse.SelectHuntingBagRsp;
+
+            huntingbagRsp.Structure.ErrCode = 0;
+            huntingbagRsp.Structure.NetId = (int)_client.Character.Id;
+            huntingbagRsp.Structure.Name = "大剑武器训练包";
+            huntingbagRsp.Structure.HuntingBagID = 903;
+
+            _client.SendCsProtoStructurePacket(huntingbagRsp);
+
+            //Errcode :
+            // 0, 1 ,3 to 29 = nothing ?
+            // 2 = already choosen by other player
+            // 
+        }
+
     }
 
     public void SendBruteForceT()

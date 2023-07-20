@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Arrowgene.Buffers;
 using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Constant;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Structures;
 using Arrowgene.MonsterHunterOnline.Service.Database;
+using Arrowgene.MonsterHunterOnline.Service.Tdr;
 
 namespace Arrowgene.MonsterHunterOnline.Service.System;
 
@@ -223,6 +226,35 @@ public class CharacterManager
             structure.FacialInfo[i] = character.FacialInfo[i];
         }
         // TODO figure out attr and other binary blobs
+
+        structure.BagItem = bagInit();
+ 
+    }
+
+    public List<byte> bagInit()
+    {
+        StreamBuffer ast = new StreamBuffer();
+        uint tag = TdrTlv.MakeTag(2, TdrTlvType.ID_8_BYTE);
+        TdrBuffer.WriteVarUInt32(ast, tag);
+        ast.WriteUInt64(3, Endianness.Big); // bagid ?
+
+
+        tag = TdrTlv.MakeTag(3, TdrTlvType.ID_4_BYTE);
+        TdrBuffer.WriteVarUInt32(ast, tag);
+        var data1 = new List<byte>() { /*0x00, 0x00, 0x00, 0x00*/ };
+        ast.WriteUInt32((uint)data1.Count, Endianness.Big); // Count of elements. max 30 ? 30 items ?
+        for (var i = 0; i < data1.Count; i++)
+        {
+            ast.WriteByte(data1[i]);
+        }
+
+        StreamBuffer finalData = new StreamBuffer();
+        finalData.WriteByte((byte)TdrTlvMagic.NoVariant);
+        var astBytes = ast.GetAllBytes();
+        finalData.WriteInt32(astBytes.Length + 5, Endianness.Big); // size
+        finalData.WriteBytes(astBytes);
+
+        return finalData.GetAllBytes().ToList();
     }
 
     public void SyncAllAttr(Client client)

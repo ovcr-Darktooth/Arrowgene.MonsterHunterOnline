@@ -4,6 +4,7 @@ using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Enums;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Structures;
 using Arrowgene.MonsterHunterOnline.Service.System;
+using System.Collections.Generic;
 
 namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Handler;
 
@@ -27,7 +28,7 @@ public class EnterLevelNtfHandler : CsProtoStructureHandler<EnterLevelNtf>
 
         if (!client.Character.IsSync)
         {
-
+            Logger.Info($"char not sync");
             // TODO hack to get visuals working
             CsProtoStructurePacket<TownInstanceVerifyRsp> townServerInitNtf = CsProtoResponse.TownServerInitNtf;
             TownInstanceVerifyRsp verifyRsp = townServerInitNtf.Structure;
@@ -37,9 +38,9 @@ public class EnterLevelNtfHandler : CsProtoStructureHandler<EnterLevelNtf>
 
             InstanceInitInfo instanceInitInfo = verifyRsp.InstanceInitInfo;
             instanceInitInfo.BattleGroundId = 0;
-            instanceInitInfo.LevelId = 150301;
+            instanceInitInfo.LevelId = 604001;
             instanceInitInfo.CreateMaxPlayerCount = 4;
-            instanceInitInfo.GameMode = GameMode.Town;
+            instanceInitInfo.GameMode = GameMode.HunterCraft;
             instanceInitInfo.TimeType = TimeType.Noon;
             instanceInitInfo.WeatherType = WeatherType.Sunny;
             instanceInitInfo.Time = 1;

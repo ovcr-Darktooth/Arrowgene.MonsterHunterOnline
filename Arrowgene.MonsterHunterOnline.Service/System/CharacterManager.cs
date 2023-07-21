@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Arrowgene.Buffers;
 using Arrowgene.Logging;
@@ -233,15 +234,22 @@ public class CharacterManager
 
     public List<byte> bagInit()
     {
+
+        // Génération d'un UUID
+        Guid bagId = Guid.NewGuid();
+        byte[] bagIdBytes = bagId.ToByteArray(); // UUID en bytes (tableau de 16 bytes)
+
         StreamBuffer ast = new StreamBuffer();
-        uint tag = TdrTlv.MakeTag(2, TdrTlvType.ID_8_BYTE);
+        uint tag = TdrTlv.MakeTag(2, TdrTlvType.ID_LENGTH_DELIMITED);
         TdrBuffer.WriteVarUInt32(ast, tag);
-        ast.WriteUInt64(3, Endianness.Big); // bagid ?
+        ast.WriteUInt32((uint)bagIdBytes.Length, Endianness.Big); // Longueur de l'UUID (16 bytes) en tant qu'entier non signé de 32 bits
+        ast.WriteBytes(bagIdBytes); // Utiliser l'UUID généré pour le bagid
 
 
+        //Items
         tag = TdrTlv.MakeTag(3, TdrTlvType.ID_4_BYTE);
         TdrBuffer.WriteVarUInt32(ast, tag);
-        var data1 = new List<byte>() { /*0x00, 0x00, 0x00, 0x00*/ };
+        var data1 = new List<byte>() { /*0x00, 0x00, 0x00, 0x00*/ }; // not a list of bytes but a list of item ?
         ast.WriteUInt32((uint)data1.Count, Endianness.Big); // Count of elements. max 30 ? 30 items ?
         for (var i = 0; i < data1.Count; i++)
         {

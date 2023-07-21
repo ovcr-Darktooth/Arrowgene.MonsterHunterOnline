@@ -107,7 +107,7 @@ public class NPCShopBuyItemReq : CsProtoStructureHandler<CSNpcShopBuyItemReq>
         };
         itemAdd.Structure.ItemList.Add(unItem);
 
-        Logger.Info($"Item Data length: {finalData.GetAllBytes().ToList().Count}");
+        //Logger.Info($"Item Data length: {finalData.GetAllBytes().ToList().Count}");
 
         client.SendCsProtoStructurePacket(itemAdd);
 

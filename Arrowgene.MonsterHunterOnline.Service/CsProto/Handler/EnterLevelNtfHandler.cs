@@ -39,6 +39,7 @@ public class EnterLevelNtfHandler : CsProtoStructureHandler<EnterLevelNtf>
             InstanceInitInfo instanceInitInfo = verifyRsp.InstanceInitInfo;
             instanceInitInfo.BattleGroundId = 0;
             instanceInitInfo.LevelId = 604001;
+            instanceInitInfo.LevelId = 150301;
             instanceInitInfo.CreateMaxPlayerCount = 4;
             instanceInitInfo.GameMode = GameMode.HunterCraft;
             instanceInitInfo.TimeType = TimeType.Noon;

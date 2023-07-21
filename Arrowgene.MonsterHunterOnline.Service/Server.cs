@@ -124,6 +124,8 @@ namespace Arrowgene.MonsterHunterOnline.Service
             _csProtoPacketHandler.AddHandler(new PlayerRegionJumpReqHandler());
             _csProtoPacketHandler.AddHandler(new PlayerRegionJumpEndHandler());
             _csProtoPacketHandler.AddHandler(new ChangeTownInstanceReqHandler());
+            _csProtoPacketHandler.AddHandler(new TaskRefreshScheduleHandler());
+            _csProtoPacketHandler.AddHandler(new ScheduleFetchPrizeReqHandler());
 
 
             _tpduConsumer.AddHandler(new TdpuCmdRelay(Database));

@@ -366,6 +366,17 @@ public class PlayerState
             prevLevelId = levelId;
             levelId = instanceInitInfo.LevelId;
         }
+        else if (chatMessage.Message == "daily")
+        {
+            CsProtoStructurePacket<AttrSync> sync = CsProtoResponse.AttrSync;
+
+            sync.Structure.EntityId = _client.Character.Id;
+            sync.Structure.AttrId = 179;
+            sync.Structure.BonusId = 0;
+            sync.Structure.Data.Int = 9999; // daily
+            _client.SendCsProtoStructurePacket(sync);
+
+        }
         else if (chatMessage.Message == "tp")
         {
 

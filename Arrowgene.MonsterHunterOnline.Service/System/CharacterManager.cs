@@ -427,6 +427,13 @@ public class CharacterManager
         sync.BonusId = 0;
         sync.Data.Int = character.HrLevel;
         attrs.Add(sync);
+        
+        sync = new AttrSync();
+        sync.EntityId = character.Id;
+        sync.AttrId = 398; //Weeklyrefreshtime, last time that weekly refreshed ?
+        sync.BonusId = 0;
+        sync.Data.Int = (int)Util.GetUnixTime(client.Character.Created)+60;
+        attrs.Add(sync);
 
         uint faceAttrId = 247;
         // TODO verify this logic

@@ -75,6 +75,9 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Core
         public static CsProtoStructurePacket<CSSpawnSrvEntList> SpawnSrvEntList =>
             new(CS_CMD_ID.CS_CMD_SPAWN_SRVENTLIST);
 
+        public static CsProtoStructurePacket<CSLoadEntityReq> LoadEntityReq =>
+            new(CS_CMD_ID.CS_CMD_LOAD_ENTITY_REQ);
+
         /// <summary>
         /// C2表现FIFO同步消息
         /// C2 represents FIFO synchronization messages

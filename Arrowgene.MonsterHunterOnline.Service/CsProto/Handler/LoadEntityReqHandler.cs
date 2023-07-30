@@ -18,10 +18,14 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<CSLoadEntityReq>
     public override void Handle(Client client, CSLoadEntityReq req)
     {
         Logger.Info($"Entity spawned clientside ?");
+
+
+        Logger.Info($"id size= {req.LogicEntityID.Count}\ntype size= {req.LogicEntityType.Count}");
+        Logger.Info($"id= {req.LogicEntityID[0]}\ntype= {req.LogicEntityType[0]}");
         CsProtoStructurePacket<CSSpawnSrvEntList> sendEntity = CsProtoResponse.SpawnSrvEntList;
 
 
-        sendEntity.Structure.InitMode = 3;
+        sendEntity.Structure.InitMode = 0; // default = 0 ?
         sendEntity.Structure.EntList = new List<CSSpawnSrvEnt>();
 
         CSSpawnSrvEnt leNPC = new CSSpawnSrvEnt();
@@ -44,7 +48,15 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<CSLoadEntityReq>
 
         sendEntity.Structure.EntList.Add(leNPC);
 
+       
+        //isn't a client to server cmd ? useless here then ? 
         client.SendCsProtoStructurePacket(sendEntity);
+
+        /*for (int i = 30; i < 50; i++)
+        {
+            sendEntity.Structure.InitMode = (byte)i;
+            client.SendCsProtoStructurePacket(sendEntity);
+        }*/
 
     }
 }

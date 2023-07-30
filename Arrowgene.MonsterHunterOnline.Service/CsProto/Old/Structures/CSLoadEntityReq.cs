@@ -57,9 +57,9 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Structures
             {
                 buffer.WriteUInt32(LogicEntityID[i], Endianness.Big);
             }
-            int logicEntityTypeCount = (int)LogicEntityType.Count;
-            buffer.WriteInt32(logicEntityTypeCount, Endianness.Big);
-            for (int i = 0; i < logicEntityTypeCount; i++)
+            //int logicEntityTypeCount = (int)LogicEntityType.Count;
+            //buffer.WriteInt32(logicEntityTypeCount, Endianness.Big);
+            for (int i = 0; i < logicEntityIDCount; i++)
             {
                 buffer.WriteUInt32(LogicEntityType[i], Endianness.Big);
             }
@@ -75,11 +75,12 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Structures
                 LogicEntityID.Add(LogicEntityIDEntry);
             }
             LogicEntityType.Clear();
-            int logicEntityTypeCount = buffer.ReadInt32(Endianness.Big);
-            for (int i = 0; i < logicEntityTypeCount; i++)
+            //Using same length, so no need to read the count
+            //int logicEntityTypeCount = buffer.ReadInt32(Endianness.Big);
+            for (int i = 0; i < logicEntityIDCount; i++)
             {
-                //uint LogicEntityTypeEntry = buffer.ReadUInt32(Endianness.Big);
-                //LogicEntityType.Add(LogicEntityTypeEntry);
+                uint LogicEntityTypeEntry = buffer.ReadUInt32(Endianness.Big);
+                LogicEntityType.Add(LogicEntityTypeEntry);
             }
         }
 

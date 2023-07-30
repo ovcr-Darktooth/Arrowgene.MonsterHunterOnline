@@ -432,7 +432,7 @@ public class PlayerState
 
             loadEntity.Structure.InitType = 0; // idk, 0-100 seems nothing change tried 100, 101, 200, 201 ... to 1000
             loadEntity.Structure.LogicEntityID = new List<uint> { 63 }; // storage guy
-            loadEntity.Structure.LogicEntityType = new List<uint> { 9 }; //scripts/ai/aiconfig ??? 9 = civilian. Tried too : 3/10/12/13 as they are unknown in LogicEntityType from Ando post in #dev-chat
+            loadEntity.Structure.LogicEntityType = new List<uint> { 6 }; //scripts/ai/aiconfig ??? 9 = civilian. Tried too : 3/10/12/13 as they are unknown in LogicEntityType from Ando post in #dev-chat
             _client.SendCsProtoStructurePacket(loadEntity);
 
             /*for (int i = 0; i < 115; i+=1)

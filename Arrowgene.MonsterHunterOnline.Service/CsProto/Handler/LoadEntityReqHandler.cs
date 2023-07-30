@@ -89,18 +89,18 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<CSLoadEntityReq>
             }
         };
 
-        firstEntity.SubTypeID = 63;
-        firstEntity.Sync2CE = 0;
-        firstEntity.SpawnType = 0; // bone related spawn, 0 is absolute
+        firstEntity.SubTypeID = 63; // is it region specific entity id ? from mission0_NPCs.csv or leveldata_NPCs.csv
+        firstEntity.Sync2CE = 0; // google translate : Whether to synchronously generate to CE, 0 is no, others are required
+        firstEntity.SpawnType = 0; // bone related spawn, 0 is absolute, 1 is bone pos
         firstEntity.Bone = 0;
         firstEntity.Holder = 0; // dependent obj netid ?
         firstEntity.Owner = 0; //object ownernetid ?
         firstEntity.Faction = 3; // scripts/ai/faction.xml civilan is the 3rd so 3 ?
         firstEntity.RegionId = -1; //common/leveldata/hub_001 for the entity 63/NPC_39002 regionid is -1
-        firstEntity.UsrData = new List<byte>(); //user data
+        firstEntity.UsrData = new List<byte>(); //user data, idk what suposed to go here
         firstEntity.EntGUID = HexStringToULong("44454658350C7105"); //common/leveldata/hub_001 for the entity 63/NPC_39002 EntGUID is 44454658350C7105
         firstEntity.PropertityFile = "npc_common.xml"; //npcdatanew.dat_NPCData
-        firstEntity.MHSpawnType = 9; // idk
+        firstEntity.MHSpawnType = 6; // idk
         firstEntity.BTState = "SFJSFSF"; //idk, found it in : scripts\ai\behaviortree\behaviortree.lua
         firstEntity.BBVars = new CSBBVarList(); // don't tell me it's : scripts\ai\behaviortree\npc\common\monsterblackboard.xml
         //note : scripts/ai/logic/blackboard.lua : nil = unset the var, so having an empty list looks "good" for me

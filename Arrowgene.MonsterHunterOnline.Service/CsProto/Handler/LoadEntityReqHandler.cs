@@ -3,7 +3,10 @@ using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Enums;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Structures;
 using System.Collections.Generic;
+using System.Security.Policy;
+using System.Globalization;
 using static System.Formats.Asn1.AsnWriter;
+using System;
 
 namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Handler;
 
@@ -58,5 +61,75 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<CSLoadEntityReq>
             client.SendCsProtoStructurePacket(sendEntity);
         }*/
 
+
+        //Looks a bit more interesing way to spawn a entity
+        CsProtoStructurePacket<CSSceneObjAppearNtfList> entityAppear = CsProtoResponse.SceneObjAppearNtfList;
+        CSSceneObjAppearNtf firstEntity = new CSSceneObjAppearNtf();
+
+        firstEntity.NetID = 63; //63, should be ok for no conflict, if it's logic see playerstate : 9 / 3 / 10 / 12 /13
+        firstEntity.EntityName = "UncleMerchant"; //npcdatanew.dat_NPCData
+        firstEntity.ClassName = "EmCommon"; //npcdatanew.dat_NPCData
+        firstEntity.Pose = new CSQuatT()
+        {
+            q = new CSQuat()
+            {
+                v = new CSVec3()
+                {
+                    x = 10,
+                    y = 10,
+                    z = 10
+                },
+                w = 10
+            },
+            t = new CSVec3()
+            {
+                x = 408.59229f,
+                y = 366.01309f,
+                z = 88.239403f,
+            }
+        };
+
+        firstEntity.SubTypeID = 63;
+        firstEntity.Sync2CE = 0;
+        firstEntity.SpawnType = 0; // bone related spawn, 0 is absolute
+        firstEntity.Bone = 0;
+        firstEntity.Holder = 0; // dependent obj netid ?
+        firstEntity.Owner = 0; //object ownernetid ?
+        firstEntity.Faction = 3; // scripts/ai/faction.xml civilan is the 3rd so 3 ?
+        firstEntity.RegionId = -1; //common/leveldata/hub_001 for the entity 63/NPC_39002 regionid is -1
+        firstEntity.UsrData = new List<byte>(); //user data
+        firstEntity.EntGUID = HexStringToULong("44454658350C7105"); //common/leveldata/hub_001 for the entity 63/NPC_39002 EntGUID is 44454658350C7105
+        firstEntity.PropertityFile = "npc_common.xml"; //npcdatanew.dat_NPCData
+        firstEntity.MHSpawnType = 9; // idk
+        firstEntity.BTState = "SFJSFSF"; //idk, found it in : scripts\ai\behaviortree\behaviortree.lua
+        firstEntity.BBVars = new CSBBVarList(); // don't tell me it's : scripts\ai\behaviortree\npc\common\monsterblackboard.xml
+        //note : scripts/ai/logic/blackboard.lua : nil = unset the var, so having an empty list looks "good" for me
+        firstEntity.Buff = new List<byte>();
+        firstEntity.ParentID = 0;
+        firstEntity.ParentGUID = 0;
+
+        entityAppear.Structure.Appear.Add(firstEntity);
+
+
+        client.SendCsProtoStructurePacket(entityAppear);
+
+    }
+
+    public static ulong HexStringToULong(string hexString)
+    {
+        ulong result = 0;
+        foreach (char c in hexString)
+        {
+            result <<= 4;
+            if (c >= '0' && c <= '9')
+                result += (ulong)(c - '0');
+            else if (c >= 'A' && c <= 'F')
+                result += (ulong)(c - 'A' + 10);
+            else if (c >= 'a' && c <= 'f')
+                result += (ulong)(c - 'a' + 10);
+            else
+                throw new ArgumentException("Invalid character in the input string.");
+        }
+        return result;
     }
 }

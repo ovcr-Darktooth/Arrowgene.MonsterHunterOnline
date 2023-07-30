@@ -429,12 +429,10 @@ public class PlayerState
             //_client.SendCsProtoStructurePacket(sendEntity);
 
             CsProtoStructurePacket<CSEntityAppearNtfIDList> loadEntity = CsProtoResponse.EntityAppearNtfIDList;
-            //CsProtoStructurePacket<CSLoadEntityReq> loadEntity = CsProtoResponse.LoadEntityReq;
 
             loadEntity.Structure.InitType = 0; // idk, 0-100 seems nothing change tried 100, 101, 200, 201 ... to 1000
             loadEntity.Structure.LogicEntityID = new List<uint> { 63 }; // storage guy
-            loadEntity.Structure.LogicEntityType = new List<uint> { 7 }; //scripts/ai/aiconfig ??? 9 = civilian.   Tried too : 3/10/12/13 as they are unknown in LogicEntityType from Ando post in #dev-chat
-            //a essayer : 3//10//12//13
+            loadEntity.Structure.LogicEntityType = new List<uint> { 9 }; //scripts/ai/aiconfig ??? 9 = civilian. Tried too : 3/10/12/13 as they are unknown in LogicEntityType from Ando post in #dev-chat
             _client.SendCsProtoStructurePacket(loadEntity);
 
             /*for (int i = 0; i < 115; i+=1)
@@ -443,8 +441,8 @@ public class PlayerState
                 _client.SendCsProtoStructurePacket(loadEntity);
             }*/
 
-            loadEntity.Structure.InitType = 1; // idk
-            _client.SendCsProtoStructurePacket(loadEntity);
+            //loadEntity.Structure.InitType = 1; // idk
+            //_client.SendCsProtoStructurePacket(loadEntity);
         }
     } 
 

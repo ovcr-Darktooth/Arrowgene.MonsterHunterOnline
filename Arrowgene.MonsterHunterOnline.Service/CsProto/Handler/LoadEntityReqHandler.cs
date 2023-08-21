@@ -53,7 +53,7 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<CSLoadEntityReq>
 
        
         //isn't a client to server cmd ? useless here then ? 
-        client.SendCsProtoStructurePacket(sendEntity);
+        //client.SendCsProtoStructurePacket(sendEntity);
 
         /*for (int i = 30; i < 50; i++)
         {
@@ -68,7 +68,8 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<CSLoadEntityReq>
 
         firstEntity.NetID = 63; //63, should be ok for no conflict, if it's logic see playerstate : 9 / 3 / 10 / 12 /13
         firstEntity.EntityName = "UncleMerchant"; //npcdatanew.dat_NPCData
-        firstEntity.ClassName = "EmCommon"; //npcdatanew.dat_NPCData
+        //firstEntity.ClassName = "EmCommon"; //npcdatanew.dat_NPCData
+        firstEntity.ClassName = "MHMonsterSpawnPoint"; //level/hub_001
         firstEntity.Pose = new CSQuatT()
         {
             q = new CSQuat()
@@ -89,6 +90,7 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<CSLoadEntityReq>
             }
         };
 
+        //scene obj type id, defined by each scene obj
         firstEntity.SubTypeID = 63; // is it region specific entity id ? from mission0_NPCs.csv or leveldata_NPCs.csv
         firstEntity.Sync2CE = 0; // google translate : Whether to synchronously generate to CE, 0 is no, others are required
         firstEntity.SpawnType = 0; // bone related spawn, 0 is absolute, 1 is bone pos
@@ -112,6 +114,8 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<CSLoadEntityReq>
 
 
         client.SendCsProtoStructurePacket(entityAppear);
+
+        client.SendCsProtoStructurePacket(sendEntity);
 
     }
 

@@ -36,6 +36,7 @@ public class EnterLevelNtfHandler : CsProtoStructureHandler<EnterLevelNtf>
         loadEntity.Structure.LogicEntityType = new List<uint> { 6 };
         client.SendCsProtoStructurePacket(loadEntity);*/
 
+
         if (!client.Character.IsSync)
         {
 

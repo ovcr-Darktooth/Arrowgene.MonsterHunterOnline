@@ -131,5 +131,11 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Core
         
         public static CsProtoStructurePacket<MainInstanceOptSynRsp> MainInstanceOptSynRsp =>
             new(CS_CMD_ID.CS_CMD_MAIN_INSTANCE_OPT_SYN_RSP);
+
+        public static CsProtoStructurePacket<SCGuideBookAutoFirstOpenRsp> GuideBookAutoFirstOpenRsp =>
+            new(CS_CMD_ID.S2C_CMD_GUIDE_BOOK_AUTO_FIRST_OPEN_RSP);
+
+        public static CsProtoStructurePacket<S2CGuideBookActionFinishNtf> GuideBookActionFinishNtf =>
+            new(CS_CMD_ID.S2C_CMD_GUIDE_BOOK_ACTION_FINISH_NTF);
     }
 }

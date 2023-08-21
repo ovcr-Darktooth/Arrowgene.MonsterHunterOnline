@@ -2,6 +2,7 @@
 using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Handler;
+using Arrowgene.MonsterHunterOnline.Service.CsProto.Structures;
 using Arrowgene.MonsterHunterOnline.Service.Database;
 using Arrowgene.MonsterHunterOnline.Service.Database.Sql;
 using Arrowgene.MonsterHunterOnline.Service.System;
@@ -131,6 +132,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
             _csProtoPacketHandler.AddHandler(new ServerActorFifoSyncAck());
             _csProtoPacketHandler.AddHandler(new UpdateRushStateHandler());
             _csProtoPacketHandler.AddHandler(new WorldAccountReqHandler());
+            _csProtoPacketHandler.AddHandler(new GuideBookAutoFirstOpenReq());
 
 
             _tpduConsumer.AddHandler(new TdpuCmdRelay(Database));

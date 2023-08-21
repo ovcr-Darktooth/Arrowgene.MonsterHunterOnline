@@ -75,6 +75,14 @@ public class ChatSystem
                     recipient.SendCsProtoStructurePacket(chatNtf);
                 }
 
+                if (message.Message == "aaa")
+                {
+                    CsProtoStructurePacket<S2CGuideBookActionFinishNtf> testguide = CsProtoResponse.GuideBookActionFinishNtf;
+                    testguide.Structure.ActionId = 30101;
+                    testguide.Structure.FinishCount = 10;
+                    client.SendCsProtoStructurePacket(testguide);
+                }
+
                 break;
             case ChannelType.PM:
                 Client targetClient = _clientManager.GetClientByCharacterName(message.TargetName);

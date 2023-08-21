@@ -343,31 +343,81 @@ public class PlayerState
             //case s0
             tag = TdrTlv.MakeTag(2, TdrTlvType.ID_8_BYTE);
             TdrBuffer.WriteVarUInt32(ast, tag);
-            ast.WriteInt64(64439 + subEntryIndex, Endianness.Big);
+            ast.WriteInt64(120005 + subEntryIndex, Endianness.Big); //item id //64439 rathalos brace //weapon : 120005 (longsword), 190026 (bow)
             //case s1
             tag = TdrTlv.MakeTag(3, TdrTlvType.ID_4_BYTE);
             TdrBuffer.WriteVarUInt32(ast, tag);
-            ast.WriteInt32(64439 + subEntryIndex, Endianness.Big);
+            ast.WriteInt32(120005 + subEntryIndex, Endianness.Big); // item id
             //case s2
             tag = TdrTlv.MakeTag(4, TdrTlvType.ID_1_BYTE);
             TdrBuffer.WriteVarUInt32(ast, tag);
-            ast.WriteByte(1);
+            ast.WriteByte(3); // tab
+
+            /*
+                0 : item
+                1 : store
+                2 : in box
+                3 : character equipment
+                4 : ?
+                5 : quest
+                6 : ?
+                7 : ?
+                8 : ?
+                9 : ?
+                10: ?
+                didn't went further
+            */
+            
+
             //case s3
             tag = TdrTlv.MakeTag(5, TdrTlvType.ID_2_BYTE);
             TdrBuffer.WriteVarUInt32(ast, tag);
-            ast.WriteInt16(1, Endianness.Big);
+            ast.WriteInt16(0, Endianness.Big); //slot
+            /*
+                0 is first row first col
+                10 is 2nd row first col
+                ....
+                for equipment :
+                0 is weapon
+                1 helmet
+                2 hands
+                3 chestplate
+                4 waist
+                5 legs 
+                6 ring
+                7 necklace
+                8 additional slot ? can't see it
+                9 talisman
+
+                10 is start of costume
+                10 weapon ?
+                11 weapon ?
+                12 helmet
+                13 hands
+                14 chestplate
+                15 waist
+                16 legs
+                17 talisman
+                18 weapon ?
+                19 can't see it
+                20 can't see it
+                21 weapon ?
+                22 weapon ?
+                23 star thingy
+                didn't went further
+             */
             //case s4
             tag = TdrTlv.MakeTag(6, TdrTlvType.ID_2_BYTE);
             TdrBuffer.WriteVarUInt32(ast, tag);
-            ast.WriteInt16(1, Endianness.Big);
+            ast.WriteInt16(1, Endianness.Big); // quantity
             //case s5
             tag = TdrTlv.MakeTag(7, TdrTlvType.ID_1_BYTE);
             TdrBuffer.WriteVarUInt32(ast, tag);
-            ast.WriteByte(1);
+            ast.WriteByte(1); // ???
             //case s6
             tag = TdrTlv.MakeTag(8, TdrTlvType.ID_1_BYTE);
             TdrBuffer.WriteVarUInt32(ast, tag);
-            ast.WriteByte(1);
+            ast.WriteByte(1); // ???
 
             //cases7 -> skip bytes
 

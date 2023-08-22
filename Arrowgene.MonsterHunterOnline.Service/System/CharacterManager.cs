@@ -297,6 +297,13 @@ public class CharacterManager
 
         sync = new AttrSync();
         sync.EntityId = character.Id;
+        sync.AttrId = 236;
+        sync.BonusId = 0;
+        sync.Data.Int = 1; // system unlock : pet
+        attrs.Add(sync);
+
+        sync = new AttrSync();
+        sync.EntityId = character.Id;
         sync.AttrId = 25;
         sync.BonusId = 1;
         sync.Data.Int = 1; // str

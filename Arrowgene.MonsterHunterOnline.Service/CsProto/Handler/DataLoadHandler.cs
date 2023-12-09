@@ -98,12 +98,14 @@ public class DataLoadHandler : CsProtoStructureHandler<RemoteDataLoadReq>
             InstanceInitInfo instanceInitInfo = verifyRsp.InstanceInitInfo;
             instanceInitInfo.BattleGroundId = 0;
             instanceInitInfo.LevelId = 150301;
+            //instanceInitInfo.LevelId = 140900;
+            //instanceInitInfo.LevelId = 100101;
 
             // TODO hack
             instanceInitInfo.LevelId = client.State.InitLevelId;
 
             instanceInitInfo.CreateMaxPlayerCount = 4;
-            instanceInitInfo.GameMode = GameMode.Town;
+            instanceInitInfo.GameMode = GameMode.Casual;
             instanceInitInfo.TimeType = TimeType.Noon;
             instanceInitInfo.WeatherType = WeatherType.Sunny;
             instanceInitInfo.Time = 1;

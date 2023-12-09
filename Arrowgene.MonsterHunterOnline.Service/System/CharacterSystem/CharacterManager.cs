@@ -253,11 +253,24 @@ public class CharacterManager
         structure.Attr.SetCharLevel((int)character.Level);
         structure.Attr.CharSex = character.Gender;
         structure.Attr.SetCharSpeed(100);
-        structure.Attr.CharSta = 100;
+        structure.Attr.SetCharAnimSpeed(10000);
+        structure.Attr.SetCharFatigue(100);
+        structure.Attr.SetCharMaxFatigue(100);
+        structure.Attr.Death = 0;
+        structure.Attr.CharSta = 50;
         structure.Attr.SetCharMaxSta(100);
+        structure.Attr.SetCharStaRecovery(2);
+        structure.Attr.SetCharStaDdct(25);
+        structure.Attr.SetCharStaDdctPeriod(360);
+        structure.Attr.StaFlag = 0; //0 = disabled, 1 = enabled in theory
+        structure.Attr.SetStaReduce(5); // idk if it need to be positive or negative. translated : Endurance consumption for running
+        structure.Attr.StaReduceFlag = -1; // less than 0 = starts to decay in theory
+        structure.Attr.SetCurStaReduce(20);
         structure.Attr.StarLevel = character.HrLevel; // character.StarLevel is string;
         structure.Attr.CharHP = 100;
         structure.Attr.SetCharMaxHP(100);
+        structure.Attr.SetCharReju(1);
+        structure.Attr.SetCharMaxReju(0);
         structure.Attr.MaleFace = character.FaceId;
         structure.Attr.MaleHair = character.HairId;
         structure.Attr.UnderClothes = character.UnderclothesId;
@@ -388,6 +401,7 @@ public class CharacterManager
     public void SyncAllAttr(Client client)
     {
         List<AttrSync> attrs = GetAllAttrSync(client, client.Character);
+        attrs = GetStaAttrSync(client, client.Character);
         List<List<AttrSync>> attrChunks = Util.Chunk(attrs, CsProtoConstant.CS_ATTR_SYNC_LIST_MAX);
 
         foreach (List<AttrSync> attrChunk in attrChunks)
@@ -618,4 +632,57 @@ public class CharacterManager
 
         return attrs;
     }
-}
+
+    public List<AttrSync> GetStaAttrSync(Client client, Character character)
+    {
+        List<AttrSync> attrs = new List<AttrSync>();
+
+        AttrSync sync;
+
+        sync = new AttrSync();
+        sync.EntityId = character.Id;
+        sync.AttrId = 20; //sta
+        sync.BonusId = 0;
+        sync.Data.Int = 100;
+        attrs.Add(sync);
+
+
+        sync = new AttrSync();
+        sync.EntityId = character.Id;
+        sync.AttrId = 21; //maxsta
+        sync.BonusId = 1;
+        sync.Data.Int = 100;
+        attrs.Add(sync);
+
+        sync = new AttrSync();
+        sync.EntityId = character.Id;
+        sync.AttrId = 22; //starecovery
+        sync.BonusId = 1;
+        sync.Data.Int = 2;
+        attrs.Add(sync);
+
+        sync = new AttrSync();
+        sync.EntityId = character.Id;
+        sync.AttrId = 23; //staddct
+        sync.BonusId = 1;
+        sync.Data.Int = 25;
+        attrs.Add(sync);
+
+        sync = new AttrSync();
+        sync.EntityId = character.Id;
+        sync.AttrId = 24; //staddctperiod
+        sync.BonusId = 1;
+        sync.Data.Int = 360;
+        attrs.Add(sync);
+
+        sync = new AttrSync();
+        sync.EntityId = character.Id;
+        sync.AttrId = 128; //staflag
+        sync.BonusId = 0;
+        sync.Data.Int = 1;
+        attrs.Add(sync);
+
+        return attrs;
+    }
+
+    }

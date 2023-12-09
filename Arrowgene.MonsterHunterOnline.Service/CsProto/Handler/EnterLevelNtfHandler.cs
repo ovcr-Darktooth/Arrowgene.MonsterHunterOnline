@@ -24,6 +24,6 @@ public class EnterLevelNtfHandler : CsProtoStructureHandler<EnterLevelNtf>
 
     public override void Handle(Client client, EnterLevelNtf req)
     {
-       // _characterManager.SyncAllAttr(client);
+        //_characterManager.SyncAllAttr(client);
     }
 }

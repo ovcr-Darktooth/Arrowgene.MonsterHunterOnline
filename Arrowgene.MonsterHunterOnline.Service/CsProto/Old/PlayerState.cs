@@ -33,8 +33,13 @@ public class PlayerState
         y = 396.74976f,
         z = 85.0f
     };
+    /*{
+        x = 10,
+        y = 10,
+        z = 1
+    };*/
 
-    public int InitLevelId = 150101;
+public int InitLevelId = 150101;
 
 
     public PlayerState(Client client)

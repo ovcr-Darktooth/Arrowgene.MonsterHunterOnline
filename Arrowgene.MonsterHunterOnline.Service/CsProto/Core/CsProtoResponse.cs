@@ -132,6 +132,18 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Core
         public static CsCsProtoStructurePacket<SceneObjAppearNtfList> SceneObjAppearNtfList =>
             new(CS_CMD_ID.CS_CMD_SCENEOBJ_APPEAR_NTF_LIST);
 
+        /// <summary>
+        /// Looks like client ignores this
+        /// </summary>
+        public static CsCsProtoStructurePacket<BattleActorAttachEntity> BattleActorAttachEntity =>
+            new(CS_CMD_ID.CS_CMD_BATTLE_ACTOR_ATTACHENTITY);
+
+        /// <summary>
+        /// Looks like client ignores this
+        /// </summary>
+        public static CsCsProtoStructurePacket<BattleActorAttachEntityNtf> BattleActorAttachEntityNtf =>
+            new(CS_CMD_ID.CS_CMD_BATTLE_ACTOR_ATTACHENTITY_NTF);
+
         public static CsCsProtoStructurePacket<MainInstanceOptSynRsp> MainInstanceOptSynRsp =>
             new(CS_CMD_ID.CS_CMD_MAIN_INSTANCE_OPT_SYN_RSP);
 

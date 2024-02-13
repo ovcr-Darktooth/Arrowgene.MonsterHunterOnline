@@ -257,20 +257,27 @@ public class CharacterManager
         structure.Attr.SetCharFatigue(100);
         structure.Attr.SetCharMaxFatigue(100);
         structure.Attr.Death = 0;
-        structure.Attr.CharSta = 50;
-        structure.Attr.SetCharMaxSta(100);
+        structure.Attr.CharSta = 100;
+        structure.Attr.SetCharMaxSta(150);
         structure.Attr.SetCharStaRecovery(2);
         structure.Attr.SetCharStaDdct(25);
         structure.Attr.SetCharStaDdctPeriod(360);
-        structure.Attr.StaFlag = 0; //0 = disabled, 1 = enabled in theory
-        structure.Attr.SetStaReduce(5); // idk if it need to be positive or negative. translated : Endurance consumption for running
-        structure.Attr.StaReduceFlag = -1; // less than 0 = starts to decay in theory
-        structure.Attr.SetCurStaReduce(20);
+        structure.Attr.StaFlag = 0; // natural endurance restoration
+        // (StaFlag) official translation : The program is for self-use, and the endurance is restored naturally. 0 means enabled, 1 means disabled.
+        structure.Attr.SetStaReduce(1); // idk if it need to be positive or negative. translated : Endurance consumption for running
+        structure.Attr.StaReduceFlag = 1; // translated : Stamina decay start count
+        structure.Attr.SetCurStaReduce(25); // translated : Current stamina decay
+        structure.Attr.SetBackBossRunStaReduce(1); // translated : Running away from the Boss consumes stamina
         structure.Attr.StarLevel = character.HrLevel; // character.StarLevel is string;
-        structure.Attr.CharHP = 100;
+        structure.Attr.CharHP = 10;
         structure.Attr.SetCharMaxHP(100);
         structure.Attr.SetCharReju(1);
-        structure.Attr.SetCharMaxReju(0);
+        structure.Attr.SetCharMaxReju(20);
+        structure.Attr.SetRejuDmgRatio(50);
+        structure.Attr.RejuFlag = 1;
+        structure.Attr.SetCharRejuPer(75);
+        structure.Attr.CharRage = 10000;
+        structure.Attr.SetCharMaxRage(20000);
         structure.Attr.MaleFace = character.FaceId;
         structure.Attr.MaleHair = character.HairId;
         structure.Attr.UnderClothes = character.UnderclothesId;
@@ -293,105 +300,147 @@ public class CharacterManager
         structure.Attr.SystemUnlockExtData1 = systemUnlockData.ToExtFlags();
 
         // task
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 3007,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 3,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 4,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 5,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 10,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 3002,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 3004,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 6,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 7,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 8,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 9,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 3003,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-     // structure.Task.Tasks.Add(new TlvTaskEntry()
-     // {
-     //     Id = 11,
-     //     AcceptTime = 0,
-     //     State = 0,
-     //     Timeout = 0
-     // });
-        structure.Task.Tasks.Add(new TlvTaskEntry()
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 3007,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 3,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 4,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 5,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 10,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 3002,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+         structure.Task.Tasks.Add(new TlvTaskEntry()
+         {
+             Id = 12,
+             AcceptTime = 0,
+             State = 0,
+             Timeout = 0
+         });
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 6,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 7,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 8,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 9,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 3003,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+        // structure.Task.Tasks.Add(new TlvTaskEntry()
+        // {
+        //     Id = 11,
+        //     AcceptTime = 0,
+        //     State = 0,
+        //     Timeout = 0
+        // });
+        /*structure.Task.Tasks.Add(new TlvTaskEntry()
         {
-            Id = 12,
+            Id = 1568,
             AcceptTime = 0,
             State = 0,
             Timeout = 0
         });
-     
+        structure.Task.Tasks.Add(new TlvTaskEntry()
+        {
+            Id = 1001,
+            AcceptTime = 0,
+            State = 0,
+            Timeout = 0
+        });
+        structure.Task.Tasks.Add(new TlvTaskEntry()
+        {
+            Id = 3007,
+            AcceptTime = 0,
+            State = 0,
+            Timeout = 0
+        });
+        structure.Task.Tasks.Add(new TlvTaskEntry()
+        {
+            Id = 381,
+            AcceptTime = 0,
+            State = 0,
+            Timeout = 0
+        });
+        structure.Task.Tasks.Add(new TlvTaskEntry()
+        {
+            Id = 223,
+            AcceptTime = 0,
+            State = 0,
+            Timeout = 0
+        });
+        structure.Task.Tasks.Add(new TlvTaskEntry()
+        {
+            Id = 3001,
+            AcceptTime = 0,
+            State = 0,
+            Timeout = 0
+        });*/
+        /*structure.Task.Complete.Task.Add(new TlvTaskEntry()
+        {
+            Id = 3004,
+            AcceptTime = 0,
+            State = 0,
+            Timeout = 0
+        });*/
+
 
         // equip
         // TODO null check

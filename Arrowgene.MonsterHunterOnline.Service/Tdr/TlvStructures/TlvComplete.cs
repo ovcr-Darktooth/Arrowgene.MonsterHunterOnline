@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Arrowgene.Buffers;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 
@@ -39,7 +40,7 @@ public class TlvComplete : Structure, ITlvStructure
         }
 
         // task
-        int taskCount = Math.Min(Task.Count, MaxTask);
+         int taskCount = Math.Min(Task.Count, MaxTask);
         if (taskCount > 0)
         {
             WriteTlvInt32(buffer, 4, taskCount * 2);
@@ -48,6 +49,11 @@ public class TlvComplete : Structure, ITlvStructure
                 WriteInt16(buffer, Task[i]);
             }
         }
+        // taskCount
+        /*WriteTlvInt32(buffer, 4, taskCount * 2);
+
+        // task
+        WriteTlvSubStructureList(buffer, 2, taskCount, Task);*/
 
         // count
         WriteTlvInt32(buffer, 3, Count);

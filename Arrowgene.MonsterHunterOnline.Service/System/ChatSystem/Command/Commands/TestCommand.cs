@@ -18,6 +18,11 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
 
         private readonly CharacterManager _characterManager;
 
+        public TestCommand(CharacterManager characterManager)
+        {
+            _characterManager = characterManager;
+        }
+
         public override void Execute(string[] command, Client client, ChatMessage message, List<ChatMessage> responses)
         {
             //client.SendCsPacket(NewCsPacket.SelectHuntingBagRsp(new CSSelectHuntingBagRsp()));
@@ -33,9 +38,18 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
             enterInstanceCountDown.Structure.Second = 5;
             enterInstanceCountDown.Structure.LevelId = client.State.MainInstanceLevelId;
             //client.SendCsProtoStructurePacket(enterInstanceCountDown);
+
+            CsCsProtoStructurePacket<PlayerInitInfo> playerInitInfo = CsProtoResponse.PlayerInitInfo;
+            playerInitInfo.Structure.Pose.t.x = 15f;
+            playerInitInfo.Structure.Pose.t.y = 15f;
+            playerInitInfo.Structure.Pose.t.z = 2f;
+            //_characterManager.PopulatePlayerInitInfo(client, client.Character, playerInitInfo.Structure);
+            //client.SendCsProtoStructurePacket(playerInitInfo);
+
+            //CsCsProtoStructurePacket<InstanceVerifyRsp> instanceVerifyRsp = CsProtoResponse.InstanceVerifyRsp;
+            //client.SendCsProtoStructurePacket(instanceVerifyRsp);
+
             SyncAllAttr(client);
-
-
 
         }
 
@@ -70,15 +84,36 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
             sync = new AttrSync();
             sync.EntityId = character.Id;
             sync.AttrId = 15;
+            sync.BonusId = 0;
+            sync.Data.Int = 10; // hp
+            attrs.Add(sync);
+
+            sync = new AttrSync();
+            sync.EntityId = character.Id;
+            sync.AttrId = 16;
             sync.BonusId = 1;
-            sync.Data.Int = 60; // hp
+            sync.Data.Int = 20; // maxhp
+            attrs.Add(sync);
+
+            sync = new AttrSync();
+            sync.EntityId = character.Id;
+            sync.AttrId = 17;
+            sync.BonusId = 0;
+            sync.Data.Int = 1; // reju
+            attrs.Add(sync);
+
+            sync = new AttrSync();
+            sync.EntityId = character.Id;
+            sync.AttrId = 18;
+            sync.BonusId = 1;
+            sync.Data.Int = 10; // maxreju
             attrs.Add(sync);
 
             sync = new AttrSync();
             sync.EntityId = character.Id;
             sync.AttrId = 20; //sta
             sync.BonusId = 0;
-            sync.Data.Float = 50;
+            sync.Data.Float = 100;
             attrs.Add(sync);
 
 
@@ -112,24 +147,60 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
 
             sync = new AttrSync();
             sync.EntityId = character.Id;
-            sync.AttrId = 128; //staflag 0 = disabled, 1 = enabled in theory
-            sync.BonusId = 0;
+            sync.AttrId = 128; //staflag // natural endurance restoration
+            sync.BonusId = 0; // official translation : The program is for self-use, and the endurance is restored naturally. 0 means enabled, 1 means disabled.
             sync.Data.Int = 0;
+            attrs.Add(sync);
+
+            sync = new AttrSync();
+            sync.EntityId = character.Id;
+            sync.AttrId = 208; //BackBossRunStaReduce
+            sync.BonusId = 1;
+            sync.Data.Int = 1;
             attrs.Add(sync);
 
             sync = new AttrSync();
             sync.EntityId = character.Id;
             sync.AttrId = 129; //stareduce
             sync.BonusId = 1;
-            sync.Data.Float = 5;
+            sync.Data.Float = 1;
             attrs.Add(sync);
 
             sync = new AttrSync();
             sync.EntityId = character.Id;
             sync.AttrId = 130; //stareduceflag
             sync.BonusId = 0;
-            sync.Data.Int = -1;
+            sync.Data.Int = 1;
             attrs.Add(sync);
+
+            sync = new AttrSync();
+            sync.EntityId = character.Id;
+            sync.AttrId = 137; //CurStaReduce
+            sync.BonusId = 1;
+            sync.Data.Int = 0;
+            attrs.Add(sync);
+
+            sync = new AttrSync();
+            sync.EntityId = character.Id;
+            sync.AttrId = 132; //DefenceState
+            sync.BonusId = 0;
+            sync.Data.Int = 0;
+            attrs.Add(sync);
+
+            sync = new AttrSync();
+            sync.EntityId = character.Id;
+            sync.AttrId = 109; //CharRage
+            sync.BonusId = 0;
+            sync.Data.Int = 10000;
+            attrs.Add(sync);
+
+            sync = new AttrSync();
+            sync.EntityId = character.Id;
+            sync.AttrId = 110; //CharMaxRage
+            sync.BonusId = 1;
+            sync.Data.Int = 20000;
+            attrs.Add(sync);
+
 
 
 

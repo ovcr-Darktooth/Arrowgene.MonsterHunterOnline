@@ -120,6 +120,9 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Core
         public static CsCsProtoStructurePacket<EntityAppearNtfIdList> EntityAppearNtfIdList =>
             new(CS_CMD_ID.CS_CMD_ENTITY_APPEAR_NTF_ID_LIST);
 
+        public static CsCsProtoStructurePacket<SpawnCollectTrigSYNC> SpawnCollectTrigSYNC =>
+            new(CS_CMD_ID.CS_CMD_BATTLE_MONSTER_SPAWN_STRIP);
+
         public static CsCsProtoStructurePacket<MonsterActiveState> MonsterActiveState =>
             new(CS_CMD_ID.CS_CMD_MONSTER_ACTIVE);
 

@@ -71,6 +71,34 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
             entityAppearNtfIdList.Structure.LogicEntityId.Add(leId.Id);
             entityAppearNtfIdList.Structure.LogicEntityType.Add((uint)leId.Type);
             //client.SendCsProtoStructurePacket(entityAppearNtfIdList);
+
+            CsCsProtoStructurePacket<SpawnCollectTrigSYNC> spawnCollectTrigSYNC = CsProtoResponse.SpawnCollectTrigSYNC;
+            spawnCollectTrigSYNC.Structure.ItemID = 1; //potion is the next item to collect ? don't think so
+            spawnCollectTrigSYNC.Structure.BoxParam = new CSVec3()
+            {
+                x = 1601.128f,
+                y = 1608.0612f,
+                z = 142.376f
+            };
+            spawnCollectTrigSYNC.Structure.TriggerType = "kill";
+            spawnCollectTrigSYNC.Structure.Position = new CSVec3()
+            {
+                x = 1601.128f,
+                y = 1608.0612f,
+                z = 142.376f
+            };
+            spawnCollectTrigSYNC.Structure.Rotation = new CSQuat()
+            {
+                v = new CSVec3()
+                {
+                    x = 0f,
+                    y = 0f,
+                    z = 0f
+                },
+                w = 0f,
+            };
+            spawnCollectTrigSYNC.Structure.RelativeID = 50050;
+            client.SendCsProtoStructurePacket(spawnCollectTrigSYNC);
         }
     }
 }

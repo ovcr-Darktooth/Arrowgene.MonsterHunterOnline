@@ -22,8 +22,12 @@ public class TlvAttr : Structure, ITlvStructure
         CharMaxHP = new int[7];
         CharReju = new int[7];
         CharMaxReju = new int[7];
+        CharMaxRage = new int[7];
         StaReduce = new int[7];
         CurStaReduce = new int[7];
+        BackBossRunStaReduce = new int[7];
+        RejuDmgRatio = new int[7];
+        CharRejuPer = new int[7];
         
         FacialInfo = new short[CsProtoConstant.CS_MAX_FACIALINFO_COUNT];
     }
@@ -50,6 +54,8 @@ public class TlvAttr : Structure, ITlvStructure
     public int[] CharAnimSpeed { get; }
     public int[] CharFatigue { get; }
     public int[] CharMaxFatigue { get; }
+    public int CharRage { get; set; }
+    public int[] CharMaxRage { get; set; }
     public int MaleFace { get; set; }
     public int MaleHair { get; set; }
     public int UnderClothes { get; set; }
@@ -58,6 +64,7 @@ public class TlvAttr : Structure, ITlvStructure
     public int InnerColor { get; set; }
     public int FaceTattooId { get; set; }
     public int EyeBall { get; set; }
+    public int[] BackBossRunStaReduce { get; }
     public int FaceTattooColor { get; set; }
     public int EyeColor { get; set; }
     public bool HideFashion { get; set; }
@@ -68,6 +75,9 @@ public class TlvAttr : Structure, ITlvStructure
     public short[] FacialInfo { get; }
     public int CharHRLevel { get; set; }
     public int CharHRPoint { get; set; }
+    public int[] RejuDmgRatio { get; set; }
+    public int RejuFlag { get; set; }
+    public int[] CharRejuPer { get; set; }
 
     public void SetFacialInfo(short[] facialInfo)
     {
@@ -103,7 +113,7 @@ public class TlvAttr : Structure, ITlvStructure
 
     public void SetCharMaxHP(int val)
     {
-        SetProp(CharMaxHP, val);
+        SetProp(CharMaxHP, val, 1, 1);
     }
     public void SetCharReju(int val)
     {
@@ -111,7 +121,7 @@ public class TlvAttr : Structure, ITlvStructure
     }
     public void SetCharMaxReju(int val)
     {
-        SetProp(CharMaxReju, val);
+        SetProp(CharMaxReju, val, 1, 2);
     }
 
     public void SetCharMaxSta(int val)
@@ -132,7 +142,10 @@ public class TlvAttr : Structure, ITlvStructure
     {
         SetProp(CharStaDdctPeriod, val);
     }
-
+    public void SetCharMaxRage(int val)
+    {
+        SetProp(CharMaxRage, val);
+    }
     public void SetStaReduce(int val)
     {
         SetProp(StaReduce, val);
@@ -140,6 +153,21 @@ public class TlvAttr : Structure, ITlvStructure
     public void SetCurStaReduce(int val)
     {
         SetProp(CurStaReduce, val);
+    }
+
+    public void SetBackBossRunStaReduce(int val)
+    {
+        SetProp(BackBossRunStaReduce, val);
+    }
+
+    public void SetRejuDmgRatio(int val)
+    {
+        SetProp(RejuDmgRatio, val);
+    }
+
+    public void SetCharRejuPer(int val)
+    {
+        SetProp(CharRejuPer, val);
     }
 
 
@@ -165,16 +193,22 @@ public class TlvAttr : Structure, ITlvStructure
         WriteTlvInt32Arr(buffer, 87, CharMaxFatigue);
         WriteTlvInt32(buffer, 108, MaleFace);
         WriteTlvInt32(buffer, 109, MaleHair);
+        WriteTlvInt32(buffer, 110, CharRage);
+        WriteTlvInt32Arr(buffer, 111, CharMaxRage);
+        WriteTlvInt32Arr(buffer, 112, RejuDmgRatio);
+        WriteTlvInt32(buffer, 122, RejuFlag);
         WriteTlvInt32(buffer, 129, StaFlag);
         WriteTlvInt32Arr(buffer, 130, StaReduce);
         WriteTlvInt32(buffer, 131, StaReduceFlag);
         WriteTlvInt32Arr(buffer, 138, CurStaReduce);
         WriteTlvInt32(buffer, 173, UnderClothes);
+        WriteTlvInt32Arr(buffer, 176, CharRejuPer);
         WriteTlvInt32(buffer, 205, SkinColor);
         WriteTlvInt32(buffer, 206, HairColor);
         WriteTlvInt32(buffer, 207, InnerColor);
         WriteTlvInt32(buffer, 208, FaceTattooId);
         WriteTlvInt32(buffer, 209, EyeBall);
+        WriteTlvInt32Arr(buffer, 213, BackBossRunStaReduce);
         WriteTlvInt32(buffer, 220, FaceTattooColor);
         WriteTlvInt32(buffer, 221, EyeColor);
         WriteTlvInt16(buffer, 227, HideFashion ? (short)1 : (short)0);
@@ -206,11 +240,35 @@ public class TlvAttr : Structure, ITlvStructure
         throw new NotImplementedException();
     }
 
-    private void SetProp(int[] prop, int val)
+    private void SetProp(int[] prop, int val, int debug=0,int type=0)
     {
-        for (int i = 0; i < prop.Length; i++)
+        if (debug == 0)
         {
-            prop[i] = val;
+            for (int i = 0; i < prop.Length; i++)
+            {
+                prop[i] = val;
+            }
+        } 
+        else
+        {
+            if (type == 1) {
+                prop[0] = 0;
+                prop[1] = 0;
+                prop[2] = 0;
+                prop[3] = 0;
+                prop[4] = 0;
+                prop[5] = 0;
+                prop[6] = 10000;
+            } else if (type == 2)
+            {
+                prop[0] = 0;
+                prop[1] = 0;
+                prop[2] = 0;
+                prop[3] = 0;
+                prop[4] = 0;
+                prop[5] = 0;
+                prop[6] = 20;
+            }
         }
     }
 }

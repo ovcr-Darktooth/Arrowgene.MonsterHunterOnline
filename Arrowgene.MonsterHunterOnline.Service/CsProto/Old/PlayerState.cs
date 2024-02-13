@@ -23,11 +23,11 @@ public class PlayerState
     public bool SelectRoleTrigger { get; set; }
 
     public CSVec3 InitSpawnPos = new CSVec3()
-//  {
-//      x = 1588.4813f,
-//      y = 1593.0623f,
-//      z = 142.93517f
-//  };
+  /*{
+      x = 1588.4813f,
+      y = 1593.0623f,
+      z = 142.93517f
+};*/
     {
         x = 404.91379f,
         y = 396.74976f,
@@ -39,7 +39,8 @@ public class PlayerState
         z = 1
     };*/
 
-public int InitLevelId = 150101;
+    public int InitLevelId = 150101;
+    //public int InitLevelId = 140900;
 
 
     public PlayerState(Client client)

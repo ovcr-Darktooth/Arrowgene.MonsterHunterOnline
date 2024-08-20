@@ -66,11 +66,17 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
             CsCsProtoStructurePacket<EntityAppearNtfIdList> entityAppearNtfIdList = CsProtoResponse.EntityAppearNtfIdList;
             LogicEntityId leId = new LogicEntityId();
             leId.Type = LogicEntityType.MH_LETYPE_MONSTER;
-            leId.Id = 50080;
-            entityAppearNtfIdList.Structure.InitType = 4;
+            leId.Id = 60030;
+            entityAppearNtfIdList.Structure.InitType = 1;
             entityAppearNtfIdList.Structure.LogicEntityId.Add(leId.Id);
-            entityAppearNtfIdList.Structure.LogicEntityType.Add((uint)leId.Type);
-            //client.SendCsProtoStructurePacket(entityAppearNtfIdList);
+            //entityAppearNtfIdList.Structure.LogicEntityType.Add((uint)leId.Type);
+            entityAppearNtfIdList.Structure.LogicEntityType.Add((uint)1);
+            Logger.Debug($"{leId.Type}");
+
+            entityAppearNtfIdList.Structure.LogicEntityId.Add(60030);
+            //entityAppearNtfIdList.Structure.LogicEntityType.Add((uint)leId.Type);
+            entityAppearNtfIdList.Structure.LogicEntityType.Add((uint)2);
+            client.SendCsProtoStructurePacket(entityAppearNtfIdList);
 
             CsCsProtoStructurePacket<SpawnCollectTrigSYNC> spawnCollectTrigSYNC = CsProtoResponse.SpawnCollectTrigSYNC;
             spawnCollectTrigSYNC.Structure.ItemID = 1; //potion is the next item to collect ? don't think so
@@ -98,7 +104,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
                 w = 0f,
             };
             spawnCollectTrigSYNC.Structure.RelativeID = 50050;
-            client.SendCsProtoStructurePacket(spawnCollectTrigSYNC);
+            //client.SendCsProtoStructurePacket(spawnCollectTrigSYNC);
         }
     }
 }

@@ -267,7 +267,7 @@ public class CharacterManager
         structure.Attr.SetStaReduce(1); // idk if it need to be positive or negative. translated : Endurance consumption for running
         structure.Attr.StaReduceFlag = 1; // translated : Stamina decay start count
         structure.Attr.SetCurStaReduce(25); // translated : Current stamina decay
-        structure.Attr.SetBackBossRunStaReduce(1); // translated : Running away from the Boss consumes stamina
+        structure.Attr.SetBackBossRunStaReduce(-1); // translated : Running away from the Boss consumes stamina
         structure.Attr.StarLevel = character.HrLevel; // character.StarLevel is string;
         structure.Attr.CharHP = 10;
         structure.Attr.SetCharMaxHP(100);

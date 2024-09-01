@@ -105,6 +105,54 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
             };
             spawnCollectTrigSYNC.Structure.RelativeID = 50050;
             //client.SendCsProtoStructurePacket(spawnCollectTrigSYNC);
+
+            /*CsCsProtoStructurePacket<MonsterAppearNtf> monsterAppearNtf = CsProtoResponse.MonsterAppearNtf;
+            monsterAppearNtf.Structure.NetId = (int)415;
+            monsterAppearNtf.Structure.SpawnType = (short)1;
+            monsterAppearNtf.Structure.MonsterInfoId = 60030; //268495486
+            monsterAppearNtf.Structure.Name = "Em003";
+            monsterAppearNtf.Structure.Class = "EmCommon";
+            monsterAppearNtf.Structure.EntGuid = 415; //415
+            monsterAppearNtf.Structure.ParentGuid = 1;
+            //monsterAppearNtf.Structure.Pose.t = client.State.Position;
+            monsterAppearNtf.Structure.Pose.q = new CSQuat()
+            {
+                v = new CSVec3()
+                {
+                    x = 300f,
+                    y = 255f,
+                    z = 358f
+                },
+                w = 10f,
+            };
+
+            monsterAppearNtf.Structure.Pose.t = new CSVec3()
+            {
+                x = 300f,
+                y = 255f,
+                z = 358f
+            };
+
+            monsterAppearNtf.Structure.LcmState.SteeringEnabled = 1;
+            monsterAppearNtf.Structure.LcmState.AnimSeqName = "Idle";
+            monsterAppearNtf.Structure.LcmState.MonsterID = 60030;
+            //monsterAppearNtf.Structure.LcmState.MonsterPos = client.State.Position;
+
+            monsterAppearNtf.Structure.LcmState.MonsterPos = new CSVec3()
+            {
+                x = 300f,
+                y = 255f,
+                z = 358f
+            };
+            monsterAppearNtf.Structure.LcmState.TargetID = 3;
+            monsterAppearNtf.Structure.LcmState.TargetSrvID = 1;//7310;
+            monsterAppearNtf.Structure.LcmState.SyncTime = 1;
+            monsterAppearNtf.Structure.LcmState.SyncFlag = 1;
+
+            //   Logger.Debug(monsterAppearNtf.Structure.JsonDump());
+            CsCsProtoStructurePacket<MonsterAppearNtfList> monsterAppearNtfList = CsProtoResponse.MonsterAppearNtfList;
+            monsterAppearNtfList.Structure.Appear.Add(monsterAppearNtf.Structure);
+            client.SendCsProtoStructurePacket(monsterAppearNtfList);*/
         }
     }
 }

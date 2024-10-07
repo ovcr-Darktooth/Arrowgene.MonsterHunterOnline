@@ -116,6 +116,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Structures
             WriteInt16(buffer, SpawnType);
             WriteInt32(buffer, MonsterInfoId);
             WriteUInt64(buffer, EntGuid);
+            //WriteString(buffer, EntGuid);
             WriteString(buffer, Name);
             WriteString(buffer, Class);
             WriteCsStructure(buffer, Pose);
@@ -137,6 +138,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Structures
             SpawnType = ReadInt16(buffer);
             MonsterInfoId = ReadInt32(buffer);
             EntGuid = ReadUInt64(buffer);
+            //EntGuid = ReadString(buffer);
             Name = ReadString(buffer);
             Class = ReadString(buffer);
             Pose = ReadCsStructure(buffer, Pose);

@@ -57,15 +57,18 @@ public class MainInstanceAgreeOptReqHandler : CsProtoStructureHandler<MainInstan
             instanceInitInfo = CsProtoResponse.InstanceInitInfo;
 
         instanceInitInfo.Structure.BattleGroundId = 0;
-        instanceInitInfo.Structure.LevelId = client.State.MainInstanceLevelId;
+        //instanceInitInfo.Structure.LevelId = client.State.MainInstanceLevelId;
+        //instanceInitInfo.Structure.LevelId = 100211;
+        instanceInitInfo.Structure.LevelId = 451101;
         instanceInitInfo.Structure.CreateMaxPlayerCount = 4;
-        instanceInitInfo.Structure.GameMode = GameMode.Casual;
+        instanceInitInfo.Structure.GameMode = GameMode.Standard;
         instanceInitInfo.Structure.TimeType = TimeType.Noon;
         instanceInitInfo.Structure.WeatherType = WeatherType.Sunny;
         instanceInitInfo.Structure.Time = 1;
         instanceInitInfo.Structure.LevelRandSeed = 1;
         instanceInitInfo.Structure.WarningFlag = 0;
         instanceInitInfo.Structure.CreatePlayerMaxLv = 99;
+        //Logger.Debug(instanceInitInfo.Structure.LevelId.ToString());
 
 
         // client.SendCsProtoStructurePacket(instanceInitInfo);

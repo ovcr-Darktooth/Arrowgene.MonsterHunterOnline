@@ -78,6 +78,9 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
             entityAppearNtfIdList.Structure.LogicEntityType.Add((uint)2);
             client.SendCsProtoStructurePacket(entityAppearNtfIdList);
 
+
+
+
             CsCsProtoStructurePacket<SpawnCollectTrigSYNC> spawnCollectTrigSYNC = CsProtoResponse.SpawnCollectTrigSYNC;
             spawnCollectTrigSYNC.Structure.ItemID = 1; //potion is the next item to collect ? don't think so
             spawnCollectTrigSYNC.Structure.BoxParam = new CSVec3()

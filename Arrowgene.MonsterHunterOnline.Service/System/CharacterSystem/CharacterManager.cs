@@ -210,9 +210,9 @@ public class CharacterManager
         structure.Gender = character.Gender;
         structure.IsGm = 0;
         //spawn location
-        //structure.Pose.t.x = 409.91379f;
-        //structure.Pose.t.y = 358.74976f;
-        //structure.Pose.t.z = 100.0f; // height
+        structure.Pose.t.x = 10f;
+        structure.Pose.t.y = 10f;
+        structure.Pose.t.z = 10f; // height
 
         // TODO hack
         //structure.Pose.t = client.State.InitSpawnPos;
@@ -221,7 +221,7 @@ public class CharacterManager
         //structure.Pose.q.v.y = 10;
         //structure.Pose.q.v.z = 10;
         //structure.Pose.q.w = 10;
-        //
+
         structure.ParentEntityGuid = 0;
         structure.AvatarSetId = 0;
         structure.Faction = 0;
@@ -256,8 +256,11 @@ public class CharacterManager
         structure.Attr.CharSta = 100;
         structure.Attr.SetCharMaxSta(100);
         structure.Attr.StarLevel = character.HrLevel; // character.StarLevel is string;
-        structure.Attr.CharHP = 100;
+        structure.Attr.CharHP = 70;
         structure.Attr.SetCharMaxHP(100);
+        //structure.Attr.RejuFlag = 1;
+        //structure.Attr.SetCharReju(1);
+        structure.Attr.SetCharMaxReju(1);
         structure.Attr.MaleFace = character.FaceId;
         structure.Attr.MaleHair = character.HairId;
         structure.Attr.UnderClothes = character.UnderclothesId;

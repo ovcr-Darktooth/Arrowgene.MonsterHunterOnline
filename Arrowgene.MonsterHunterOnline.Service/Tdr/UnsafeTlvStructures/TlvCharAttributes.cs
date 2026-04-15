@@ -658,7 +658,17 @@ namespace Arrowgene.MonsterHunterOnline.Service.Tdr.TlvStructures
 
         public void SetCharMaxHP(int val)
         {
-            SetProp(CharMaxHP, val);
+            SetProp(CharMaxHP, val, 1 , 1);
+        }
+
+        public void SetCharReju(int val)
+        {
+            SetProp(CharReju, val, 1, 2);
+        }
+
+        public void SetCharMaxReju(int val)
+        {
+            SetProp(CharMaxReju, val, 1, 3);
         }
 
         public void SetCharMaxSta(int val)
@@ -666,11 +676,46 @@ namespace Arrowgene.MonsterHunterOnline.Service.Tdr.TlvStructures
             SetProp(CharMaxSta, val);
         }
 
-        private void SetProp(int[] prop, int val)
+        private void SetProp(int[] prop, int val, int debug = 0, int type = 0)
         {
-            for (int i = 0; i < prop.Length; i++)
+            if (debug == 0)
             {
-                prop[i] = val;
+                for (int i = 0; i < prop.Length; i++)
+                {
+                    prop[i] = val;
+                }
+            }
+            else
+            {
+                if (type == 1) // max hp (length of the hp bar)
+                {
+                    prop[0] = 0;
+                    prop[1] = 0;
+                    prop[2] = 0;
+                    prop[3] = 0;
+                    prop[4] = 0;
+                    prop[5] = 0;
+                    prop[6] = 90;
+                } else if (type == 2) // reju (maybe it is the hp regen per tick, did not see any changes playing with this)
+                {
+                    prop[0] = 0;
+                    prop[1] = 0;
+                    prop[2] = 0;
+                    prop[3] = 0;
+                    prop[4] = 0;
+                    prop[5] = 0;
+                    prop[6] = 50;
+                }
+                else if (type == 3) // max reju (red bar, needs to be in between hp and maxhp)
+                {
+                    prop[0] = 0;
+                    prop[1] = 0;
+                    prop[2] = 0;
+                    prop[3] = 0;
+                    prop[4] = 0;
+                    prop[5] = 0;
+                    prop[6] = 90;
+                }
             }
         }
     }

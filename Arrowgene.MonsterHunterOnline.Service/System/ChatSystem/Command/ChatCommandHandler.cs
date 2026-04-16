@@ -19,7 +19,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command
             _commands = new Dictionary<string, ChatCommand>();
             AddCommand(new HelpCommand(_commands));
             AddCommand(new VersionCommand());
-            AddCommand(new SpawnCommand());
+            AddCommand(new SpawnCommand(server.MonsterAI, server.ClientManager));
             AddCommand(new PositionCommand());
             AddCommand(new TeleportCommand());
             AddCommand(new ItemCommand(server.ItemManager));

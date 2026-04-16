@@ -39,6 +39,12 @@ public class ChatManager
             return;
         }
 
+        if (client.Character == null)
+        {
+            Logger.Debug(client, "Chat ignored: no character selected");
+            return;
+        }
+
         List<ChatMessage> responses = new List<ChatMessage>();
 
         foreach (IChatHandler handler in _handler)

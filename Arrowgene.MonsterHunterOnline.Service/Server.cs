@@ -11,6 +11,7 @@ using Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command;
 using Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Log;
 using Arrowgene.MonsterHunterOnline.Service.System.ClientAssetSystem;
 using Arrowgene.MonsterHunterOnline.Service.System.ItemSystem;
+using Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem;
 using Arrowgene.MonsterHunterOnline.Service.TqqApi;
 using Arrowgene.MonsterHunterOnline.Service.TqqApi.Handler;
 using Arrowgene.MonsterHunterOnline.Service.Web;
@@ -60,6 +61,10 @@ namespace Arrowgene.MonsterHunterOnline.Service
             CharacterManager = new CharacterManager(Database);
             Chat = new ChatManager(ClientManager);
             ItemManager = new ItemManager(Database, Assets);
+            MonsterAI = new MonsterAIManager(ClientManager);
+
+            _tpduConsumer.ClientConnected += ClientManager.Add;
+            _tpduConsumer.ClientDisconnected += ClientManager.Remove;
 
             LoadPacketHandler();
 
@@ -74,6 +79,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
         public IDatabase Database { get; }
         public AssetRepository Assets { get; }
         public ItemManager ItemManager { get; }
+        public MonsterAIManager MonsterAI { get; }
 
         private IDatabase CreateDatabase()
         {

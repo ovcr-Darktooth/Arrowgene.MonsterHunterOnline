@@ -4,12 +4,11 @@ using Arrowgene.MonsterHunterOnline.Protocol.Old.ExtraStructures;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Constant;
 using Arrowgene.MonsterHunterOnline.Protocol;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Arrowgene.MonsterHunterOnline.Service.System.UnlockSystem;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.ExtraStructures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
+using Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem;
 
 namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Commands
 {
@@ -23,10 +22,19 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
         private static readonly ServiceLogger Logger =
             LogProvider.Logger<ServiceLogger>(typeof(SpawnCommand));
 
+        private readonly MonsterAIManager _monsterAI;
+        private readonly ClientManager _clientManager;
+
+        public SpawnCommand(MonsterAIManager monsterAI, ClientManager clientManager)
+        {
+            _monsterAI = monsterAI;
+            _clientManager = clientManager;
+        }
+
         //public override AccountType Account => AccountType.Admin;
         public override AccountType Account => AccountType.User;
         public override string Key => "spawn";
-        public override string HelpText => "usage: /spawn [id] [monster|battle|playerlist|disappear] [spawnType] [name]";
+        public override string HelpText => "usage: /spawn [id] [monster|battle|playerlist|disappear|despawn] [spawnType] [name]";
 
         public override void Execute(string[] command, Client client, ChatMessage message, List<ChatMessage> responses)
         {
@@ -42,7 +50,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
             if (command.Length > 2 && !short.TryParse(command[2], out spawnType))
                 spawnType = 1;
             string name = "name";
-            if (command.Length > 1)
+            if (command.Length > 3)
                 name = command[3];
             CsCsProtoStructurePacket<MonsterAppearNtfList> monsterAppearNtfList = CsProtoResponse.MonsterAppearNtfList;
 
@@ -373,6 +381,10 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
                         client.SendCsProtoStructurePacket(attrSyncList);
                     }
                     break;
+                case "despawn":
+                    _monsterAI.Despawn((uint)spawnId);
+                    break;
+
                 case "monster":
                     // MonsterAppearNtf appear1 = new()
                     // {
@@ -434,24 +446,37 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
                     // appear1.Buff.Add(0xAA);
                     // //monsterAppearNtfIdList.Structure.Appear.Add(appear1);
 
+                    uint monsterNetId = _monsterAI.NextNetId();
+                    string btState = MonsterAIManager.GetBTState(spawnId);
+                    CSVec3 spawnPos = client.State.Position;
+
                     monsterAppearNtfList.Structure.Appear.Add(new MonsterAppearNtf()
                     {
-                        NetId = 0,
+                        NetId = (int)monsterNetId,
                         SpawnType = spawnType,
                         MonsterInfoId = spawnId,
                         EntGuid = 0,
                         Name = "",
                         Class = "",
-                        Pose = new CSQuatT(client.State.Position, new CSQuat()),
+                        Pose = new CSQuatT(spawnPos, new CSQuat(1, 0, 0, 0)),
                         Faction = 0,
                         Dead = 0,
                         ParentGuid = 0,
                         LastChildId = 0,
-                        LcmState = new CSMonsterLocomotion() { AnimSeqName = "Attack_HeavyTail" },
-                        //BTState = "BTClientEventFile",
-                        BBVars = new CSBBVarList() { Vars = new List<CSBBVar>() { new CSBBVar("Sleep", new CSBBBool(true)) } },
+                        LcmState = new CSMonsterLocomotion() { AnimSeqName = "Idle_A", MonsterID = monsterNetId },
+                        BTState = btState,
+                        BBVars = new CSBBVarList() { Vars = new List<CSBBVar>() { new CSBBVar("Sleep", new CSBBBool(false)) } },
                     });
-                    client.SendCsProtoStructurePacket(monsterAppearNtfList);
+
+                    // Broadcast spawn to every connected client, not just the sender
+                    foreach (Client c in _clientManager.GetAll())
+                    {
+                        c.SendCsProtoStructurePacket(monsterAppearNtfList);
+                    }
+
+                    // Register monster in the AI manager — starts the 500ms AI tick
+                    _monsterAI.Spawn(monsterNetId, spawnId, spawnPos);
+                    Logger.Info(client, $"Spawned monster infoId={spawnId} netId={monsterNetId} btState='{btState}'");
 
                     break;
                 default:

@@ -18,6 +18,8 @@ public class MainInstanceEnterOptReqHandler : CsProtoStructureHandler<MainInstan
 
     public override void Handle(Client client, MainInstanceEnterOptReq req)
     {
+        Logger.Info($"Level requested: ${req.LevelId}");
+
         if (req.LevelId == 191101) // For some reason the button enter the Weapon Training takes us to the wrong level (arena_010)
             req.LevelId = 140900; // Set levelId to the Actual Weapon Training level (arena_003)
 

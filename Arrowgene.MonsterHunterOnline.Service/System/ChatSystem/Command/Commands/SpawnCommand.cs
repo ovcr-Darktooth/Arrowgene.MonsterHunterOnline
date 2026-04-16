@@ -446,9 +446,10 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
                     // appear1.Buff.Add(0xAA);
                     // //monsterAppearNtfIdList.Structure.Appear.Add(appear1);
 
-                    uint monsterNetId = _monsterAI.NextNetId();
-                    string btState = MonsterAIManager.GetBTState(spawnId);
+                    uint monsterNetId = 1000;//_monsterAI.NextNetId();
                     CSVec3 spawnPos = client.State.Position;
+
+                    string btState = _monsterAI.GetBTState(spawnId);
 
                     monsterAppearNtfList.Structure.Appear.Add(new MonsterAppearNtf()
                     {
@@ -456,15 +457,18 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
                         SpawnType = spawnType,
                         MonsterInfoId = spawnId,
                         EntGuid = 0,
-                        Name = "",
-                        Class = "",
+                        Name = $"Npc_{spawnId}",
+                        Class = "MHMonsterSpawnPoint",
                         Pose = new CSQuatT(spawnPos, new CSQuat(1, 0, 0, 0)),
                         Faction = 0,
                         Dead = 0,
                         ParentGuid = 0,
                         LastChildId = 0,
-                        LcmState = new CSMonsterLocomotion() { AnimSeqName = "Idle_A", MonsterID = monsterNetId },
+                        //LcmState = new CSMonsterLocomotion() { AnimSeqName = "Attack_HeavyTail" },
+                        LcmState = new CSMonsterLocomotion() { AnimSeqName = "Idle_A", MonsterID = monsterNetId, MonsterRot = new CSQuat(1, 0, 0, 0) },
                         BTState = btState,
+                        //BTState = "",
+                        //BBVars = new CSBBVarList(),
                         BBVars = new CSBBVarList() { Vars = new List<CSBBVar>() { new CSBBVar("Sleep", new CSBBBool(false)) } },
                     });
 
@@ -476,7 +480,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command.Comman
 
                     // Register monster in the AI manager — starts the 500ms AI tick
                     _monsterAI.Spawn(monsterNetId, spawnId, spawnPos);
-                    Logger.Info(client, $"Spawned monster infoId={spawnId} netId={monsterNetId} btState='{btState}'");
+                    Logger.Info(client, $"Spawned monster infoId={spawnId} netId={monsterNetId}");
 
                     break;
                 default:

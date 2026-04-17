@@ -1,7 +1,9 @@
 ﻿using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Constant;
+using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
+using System;
 
 namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Handler;
 
@@ -15,12 +17,63 @@ public class BattleActorMoveStateHandler : CsProtoStructureHandler<ActorMoveStat
 
     public override void Handle(Client client, ActorMoveState req)
     {
-        client.State.Position = req.Location;
+        // Copy values to avoid sharing the same CSVec3 instance (prevents aliasing/overwrite issues)
+        client.State.Position = new CSVec3(req.Location.x, req.Location.y, req.Location.z);
         
-        //Logger.Info($"Pos X:{req.Location.x} Y:{req.Location.y} Z:{req.Location.z}");
-        CsCsProtoStructurePacket<ActorMoveStateNtf> actorMoveStateNtf = CsProtoResponse.ActorMoveStateNtf;
+        Logger.Info($"Pos X:{req.Location.x} Y:{req.Location.y} Z:{req.Location.z} from {client.Identity}");
+
+        // Forward movement to other connections for the same character (different port/identity)
+        try
+        {
+            var ntf = CsProtoResponse.ActorMoveStateNtf;
+            ntf.Structure.NetObjId = client.Character?.Id ?? 0;
+            ntf.Structure.ActorMoveState = req;
+
+            var clients = PlayerState.Server?.ClientManager?.GetAll();
+            if (clients != null)
+            {
+                foreach (var other in clients)
+                {
+                    if (other == null) continue;
+                    if (other == client) continue;
+                    if (other.Character == null) continue;
+                    if (client.Character == null) continue;
+                    if (other.Character.Id != client.Character.Id) continue;
+
+                    try
+                    {
+                        other.SendCsProtoStructurePacket(ntf);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"Send move ntf to {other.Identity}: {ex.Message}");
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"Forward move ntf error: {ex.Message}");
+        }
+
+        /*CsCsProtoStructurePacket<ActorMoveStateNtf> actorMoveStateNtf = CsProtoResponse.ActorMoveStateNtf;
         actorMoveStateNtf.Structure.NetObjId = client.Character.Id;
         actorMoveStateNtf.Structure.ActorMoveState = req;
-       // client.SendCsProtoStructurePacket(actorMoveStateNtf);
+        // client.SendCsProtoStructurePacket(actorMoveStateNtf);
+
+        // construire la notification (existant dans ton code)
+        var ntf = CsProtoResponse.ActorMoveStateNtf;
+        ntf.Structure.NetObjId = client.Character.Id;
+        ntf.Structure.ActorMoveState = req;
+
+        // envoyer à tous les autres clients
+        foreach (var other in PlayerState.Server.ClientManager.GetAll())
+        {
+            if (other == client) continue;
+            try { other.SendCsProtoStructurePacket(ntf); }
+            catch (Exception ex) { Logger.Error($"Send move ntf to {other.Identity}: {ex.Message}"); }
+        }
+
+        PlayerState.Server?.MonsterAI?.PlayerMoved(client);*/
     }
 }

@@ -1,5 +1,4 @@
-﻿using System.IO;
-using Arrowgene.Logging;
+﻿using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Handler;
 using Arrowgene.MonsterHunterOnline.Service.Database;
@@ -11,10 +10,12 @@ using Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Command;
 using Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Log;
 using Arrowgene.MonsterHunterOnline.Service.System.ClientAssetSystem;
 using Arrowgene.MonsterHunterOnline.Service.System.ItemSystem;
+using Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem;
 using Arrowgene.MonsterHunterOnline.Service.TqqApi;
 using Arrowgene.MonsterHunterOnline.Service.TqqApi.Handler;
 using Arrowgene.MonsterHunterOnline.Service.Web;
 using Arrowgene.Networking.Tcp.Server.AsyncEvent;
+using System.IO;
 
 namespace Arrowgene.MonsterHunterOnline.Service
 {
@@ -60,6 +61,10 @@ namespace Arrowgene.MonsterHunterOnline.Service
             CharacterManager = new CharacterManager(Database);
             Chat = new ChatManager(ClientManager);
             ItemManager = new ItemManager(Database, Assets);
+            MonsterAI = new MonsterAIManager(ClientManager);
+
+            _tpduConsumer.ClientConnected += ClientManager.Add;
+            _tpduConsumer.ClientDisconnected += ClientManager.Remove;
 
             LoadPacketHandler();
 
@@ -74,7 +79,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
         public IDatabase Database { get; }
         public AssetRepository Assets { get; }
         public ItemManager ItemManager { get; }
-
+        public MonsterAIManager MonsterAI { get; }
         private IDatabase CreateDatabase()
         {
             string sqliteFolder = Path.Combine(Util.ExecutingDirectory(), "Files/SQLite");
@@ -142,7 +147,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
             _csProtoPacketHandler.AddHandler(new LeaveInstanceReqHandler());
             _csProtoPacketHandler.AddHandler(new LevelHuntingModeUpdateHandler());
             _csProtoPacketHandler.AddHandler(new LineUpBigRandHandler());
-            _csProtoPacketHandler.AddHandler(new LoadEntityReqHandler());
+            _csProtoPacketHandler.AddHandler(new LoadEntityReqHandler(MonsterAI));
             _csProtoPacketHandler.AddHandler(new MainInstanceAgreeOptReqHandler(Setting));
             _csProtoPacketHandler.AddHandler(new MainInstanceEnterOptReqHandler());
             _csProtoPacketHandler.AddHandler(new MainInstanceOptSynReqHandler());

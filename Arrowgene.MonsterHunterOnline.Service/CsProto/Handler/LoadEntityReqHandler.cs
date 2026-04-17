@@ -1,9 +1,10 @@
 ﻿using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Constant;
+using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Service.System;
+using Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem;
 
 namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Handler;
 
@@ -14,9 +15,11 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<LoadEntityReq>
 
     public override CS_CMD_ID Cmd => CS_CMD_ID.CS_CMD_LOAD_ENTITY_REQ;
 
+    private MonsterAIManager _monsterAI;
 
-    public LoadEntityReqHandler()
+    public LoadEntityReqHandler(MonsterAIManager monsterAI)
     {
+        _monsterAI = monsterAI;
     }
 
     public override void Handle(Client client, LoadEntityReq req)
@@ -78,6 +81,8 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<LoadEntityReq>
             activeState.Structure.Position = new XYZPosition() { x = spawnPos.x, y = spawnPos.y, z = spawnPos.z };
             activeState.Structure.Rotation = new Quaternion() { x = 0, y = 0, z = 0, w = 1 };
             client.SendCsProtoStructurePacket(activeState);
+
+            _monsterAI.Spawn(netId, (int)netId, spawnPos);
         }
     }
 }

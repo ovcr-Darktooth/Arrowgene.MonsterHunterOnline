@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
+using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto;
+using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 
 namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
 {
@@ -73,6 +75,32 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             return (nearest, minDist);
         }
 
+        /// <summary>
+        /// Broadcasts CS_CMD_MONSTER_ACTIVE (528) to all clients.
+        /// activeState=1 : monster is alive and active.
+        /// activeState=0 : monster is deactivated (dead/despawned).
+        /// </summary>
+        public void BroadcastMonsterActiveState(uint netId, uint activeState, CSVec3 pos, long syncTime)
+        {
+            foreach (Client c in _clientManager.GetAll())
+            {
+                try
+                {
+                    CsCsProtoStructurePacket<MonsterActiveState> packet = CsProtoResponse.MonsterActiveState;
+                    packet.Structure.SyncTime   = syncTime;
+                    packet.Structure.ActiveState = activeState;
+                    packet.Structure.MonsterId  = netId;
+                    packet.Structure.Position   = new XYZPosition { x = pos.x, y = pos.y, z = pos.z };
+                    packet.Structure.Rotation   = new Quaternion  { x = 0, y = 0, z = 0, w = 1 };
+                    c.SendCsProtoStructurePacket(packet);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"BroadcastMonsterActiveState to {c.Identity}: {ex.Message}");
+                }
+            }
+        }
+
         /// <summary>Sends a MonsterLocomotion packet to every connected client.</summary>
         public void BroadcastLcm(CSMonsterLocomotion lcm)
         {
@@ -88,7 +116,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         {
             // ex : réveiller les monstres proches, recalculer cible, etc.
             // pour l'instant on peut juste logger ou mettre à jour un index
-            Logger.Info($"PlayerMoved: {client.Identity} pos=({client.State.Position.x},{client.State.Position.y},{client.State.Position.z})");
+            //Logger.Info($"PlayerMoved: {client.Identity} pos=({client.State.Position.x},{client.State.Position.y},{client.State.Position.z})");
         }
 
         private static float Distance(CSVec3 a, CSVec3 b)

@@ -1,5 +1,6 @@
 ﻿using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Constant;
+using Arrowgene.MonsterHunterOnline.Protocol.Old.ExtraStructures;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
@@ -29,9 +30,12 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<LoadEntityReq>
         // Phase 3 of the 3-phase spawn protocol:
         // Client sent CMD 534 (LoadEntityReq) requesting full entity data
         // after we sent CMD 533 (EntityAppearNtfIdList) in Phase 1.
-        // Respond with CMD 662 (SINGLE MonsterAppearNtf, NOT list CMD 663!)
-        // CMD 662 → CMonsterSpawner::SpawnMonsters → type-1 CMonster_Derived (proper entity)
-        // CMD 663 → FUN_112a3ac0 → type-8 entity (BROKEN, crashes)
+        //
+        // Two-entity model (confirmed via IDA analysis of CryGame.dll):
+        //   CMD 662 → CMonsterSpawner::SpawnMonsters → type-1 CMonster_Derived (logic: AI, hitboxes, locomotion)
+        //   CMD 663 → sub_112A3AC0 → type-8 entity (render shell: mesh, animations)
+        // Both MUST share the same NetId so CMD 641 locomotion updates reach the visible mesh.
+        // CMD 663 with NetId=0 creates a static render entity that never receives locomotion updates.
 
         for (int i = 0; i < req.LogicEntityId.Count; i++)
         {
@@ -47,10 +51,16 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<LoadEntityReq>
             monsterAppearNtf.Structure.MonsterInfoId = 50080;
             monsterAppearNtf.Structure.EntGuid = 12345;
             monsterAppearNtf.Structure.Name = "M008_RaptorCrimson";
-            monsterAppearNtf.Structure.Class = "";
+            monsterAppearNtf.Structure.Class = "EmCommon"; // EntityClass from monsterdata.dat_Monsters.csv
             monsterAppearNtf.Structure.Pose = new CSQuatT(spawnPos, new CSQuat(1.0f, 0, 0, 0));
             monsterAppearNtf.Structure.Faction = 2;
             monsterAppearNtf.Structure.BTState = "Idle";
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("IsMonster",            new CSBBBool(true)));
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("MaxHealth",            new CSBBInt { value = 5000 }));
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("TargetSrvID",          new CSBBInt { value = 0 }));
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("TargetID",             new CSBBInt { value = 0 }));
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("Flag_Invulnerability", new CSBBBool(false)));
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("RegionTimeRecord",     new CSBBInt { value = 0 }));
             monsterAppearNtf.Structure.Dead = 0;
             monsterAppearNtf.Structure.ParentGuid = 0;
             monsterAppearNtf.Structure.LastChildId = -1;
@@ -58,19 +68,13 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<LoadEntityReq>
             monsterAppearNtf.Structure.LcmState.AnimSeqName = "Idle";
             monsterAppearNtf.Structure.LcmState.MonsterPos = spawnPos;
             monsterAppearNtf.Structure.LcmState.MonsterRot = new CSQuat(1.0f, 0, 0, 0);
-            monsterAppearNtf.Structure.LcmState.TargetSrvID = 1;
+            monsterAppearNtf.Structure.LcmState.TargetSrvID = 0;
             client.SendCsProtoStructurePacket(monsterAppearNtf);
 
-            // ALSO send render-only spawn via CMD 663 with NetId=0 (proven to render model)
-            // This is a fallback in case SpawnMonsters can't load the model from CMonsterInfo
+            // CMD 663 type-8 render entity — MUST use the same NetId as CMD 662 so that
+            // CMD 641 locomotion packets (targeting this netId) also update the visible mesh.
             CsCsProtoStructurePacket<MonsterAppearNtfList> renderSpawn = CsProtoResponse.MonsterAppearNtfList;
-            renderSpawn.Structure.Appear.Add(new MonsterAppearNtf()
-            {
-                NetId = 0,
-                SpawnType = 1,
-                MonsterInfoId = 50080,
-                Pose = new CSQuatT(spawnPos, new CSQuat(1.0f, 0, 0, 0)),
-            });
+            renderSpawn.Structure.Appear.Add(new MonsterAppearNtf() { NetId = (int)netId, SpawnType = 1, MonsterInfoId = 50080, Pose = new CSQuatT(spawnPos, new CSQuat(1.0f, 0, 0, 0)) });
             client.SendCsProtoStructurePacket(renderSpawn);
 
             // Send MonsterActiveState (CMD 528) to activate the type-1 entity

@@ -20,7 +20,7 @@ public class BattleActorMoveStateHandler : CsProtoStructureHandler<ActorMoveStat
         // Copy values to avoid sharing the same CSVec3 instance (prevents aliasing/overwrite issues)
         client.State.Position = new CSVec3(req.Location.x, req.Location.y, req.Location.z);
         
-        Logger.Info($"Pos X:{req.Location.x} Y:{req.Location.y} Z:{req.Location.z} from {client.Identity}");
+        //Logger.Info($"Pos X:{req.Location.x} Y:{req.Location.y} Z:{req.Location.z} from {client.Identity}");
 
         // Forward movement to other connections for the same character (different port/identity)
         try
@@ -40,6 +40,7 @@ public class BattleActorMoveStateHandler : CsProtoStructureHandler<ActorMoveStat
                     if (client.Character == null) continue;
                     if (other.Character.Id != client.Character.Id) continue;
 
+                    other.State.Position = new CSVec3(req.Location.x, req.Location.y, req.Location.z);
                     try
                     {
                         other.SendCsProtoStructurePacket(ntf);
@@ -74,6 +75,9 @@ public class BattleActorMoveStateHandler : CsProtoStructureHandler<ActorMoveStat
             catch (Exception ex) { Logger.Error($"Send move ntf to {other.Identity}: {ex.Message}"); }
         }
 
-        PlayerState.Server?.MonsterAI?.PlayerMoved(client);*/
+        PlayerState.Server?.MonsterAI?.PlayerMoved(client);
+        */
+
+        PlayerState.Server?.MonsterAI?.PlayerMoved(client);
     }
 }

@@ -45,7 +45,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                 _syncTime += TickMs;
                 var (target, dist) = _manager.FindNearestPlayer(Position);
 
-                Logger.Debug($"Monster at distance {dist} -> Idle");
+                Logger.Info($"Monster {NetId} tick: target={(target == null ? "NULL" : target.Identity)}, dist={(dist == float.MaxValue ? "MAX(no pos)" : dist.ToString("F1"))}, state={State}");
 
                 if (target == null || dist > AggroRange)
                 {
@@ -53,8 +53,10 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                     {
                         State = MonsterAIState.Idle;
                         Logger.Debug($"Monster {NetId} -> Idle");
+                        // Notify clients: monster is still active but returned to idle
+                        _manager.BroadcastMonsterActiveState(NetId, 1, Position, _syncTime);
                     }
-                    BroadcastLocomotion("Idle_A", 0, new CSVec3());
+                    BroadcastLocomotion("Idle", 0, new CSVec3());
                     return;
                 }
 
@@ -70,12 +72,20 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                     {
                         State = MonsterAIState.Attack;
                         Logger.Debug($"Monster {NetId} -> Attack target={targetId}");
+                        // Notify clients: monster entered attack state
+                        _manager.BroadcastMonsterActiveState(NetId, 1, Position, _syncTime);
                     }
-                    BroadcastLocomotion("Attack_HeavyTail", targetId, new CSVec3());
+                    BroadcastLocomotion("Attack", targetId, new CSVec3());
                 }
                 else
                 {
-                    State = MonsterAIState.Chase;
+                    if (State != MonsterAIState.Chase)
+                    {
+                        State = MonsterAIState.Chase;
+                        Logger.Debug($"Monster {NetId} -> Chase target={targetId}");
+                        // Notify clients: monster started chasing
+                        _manager.BroadcastMonsterActiveState(NetId, 1, Position, _syncTime);
+                    }
                     float scale = MoveSpeedPerTick / dist;
                     Position = new CSVec3
                     {
@@ -90,6 +100,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                         y = (dy * scale) / tickSec,
                         z = (dz * scale) / tickSec,
                     };
+                    Logger.Debug($"Monster {NetId} -> Moving to target={targetId}");
                     BroadcastLocomotion("Run_F", targetId, speed);
                 }
             }
@@ -121,6 +132,8 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             _disposed = true;
             _timer?.Dispose();
             _timer = null;
+            // ActiveState=0 signals the client to deactivate this monster entity
+            _manager.BroadcastMonsterActiveState(NetId, 0, Position, _syncTime);
         }
     }
 }

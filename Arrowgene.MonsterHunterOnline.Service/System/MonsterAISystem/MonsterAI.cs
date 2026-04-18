@@ -59,6 +59,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                         _manager.BroadcastMonsterActiveState(NetId, 1, Position, _syncTime);
                     }
                     BroadcastLocomotion("Idle", 0, new CSVec3());
+                    _manager.BroadcastMonsterActiveState(0, 1, Position, _syncTime);
                     return;
                 }
 
@@ -78,6 +79,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                         _manager.BroadcastMonsterActiveState(NetId, 1, Position, _syncTime);
                     }
                     BroadcastLocomotion("Attack", targetId, new CSVec3());
+                    _manager.BroadcastMonsterActiveState(0, 1, Position, _syncTime);
                 }
                 else
                 {
@@ -104,6 +106,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                     };
                     Logger.Debug($"Monster {NetId} -> Moving to target={targetId}");
                     BroadcastLocomotion("Run_F", targetId, speed);
+                    _manager.BroadcastMonsterActiveState(0, 1, Position, _syncTime);
                 }
             }
             catch (Exception ex)

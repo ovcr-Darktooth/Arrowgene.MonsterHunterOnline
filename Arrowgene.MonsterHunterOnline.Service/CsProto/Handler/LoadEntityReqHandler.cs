@@ -38,83 +38,63 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<LoadEntityReq>
         // CMD 663 with NetId=0 creates a static render entity that never receives locomotion updates.
 
         CSVec3 spawnPos = client.State.PendingMonsterSpawnPos ?? client.State.Position;
-        uint logicNetId  = 0;
-        uint renderNetId = 0;
 
         for (int i = 0; i < req.LogicEntityId.Count; i++)
         {
-            uint netId     = req.LogicEntityId[i];
-            uint entityType = req.LogicEntityType[i];
+            uint netId = req.LogicEntityId[i];
 
-            if (entityType == 1)
+            // CMD 662 → type-1 CMonster_Derived: AI, hitboxes, locomotion receiver
+            CsCsProtoStructurePacket<MonsterAppearNtf> monsterAppearNtf = CsProtoResponse.MonsterAppearNtf;
+            monsterAppearNtf.Structure.NetId = (int)netId;
+            monsterAppearNtf.Structure.SpawnType = 1;
+            monsterAppearNtf.Structure.MonsterInfoId = 50080;
+            monsterAppearNtf.Structure.EntGuid = 12345;
+            monsterAppearNtf.Structure.Name = "M008_RaptorCrimson";
+            monsterAppearNtf.Structure.Class = "EmCommon";
+            monsterAppearNtf.Structure.Pose = new CSQuatT(spawnPos, new CSQuat(1.0f, 0, 0, 0));
+            monsterAppearNtf.Structure.Faction = 2;
+            monsterAppearNtf.Structure.BTState = "Idle";
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("IsMonster",            new CSBBBool(true)));
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("MaxHealth",            new CSBBInt { value = 5000 }));
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("TargetSrvID",          new CSBBInt { value = 0 }));
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("TargetID",             new CSBBInt { value = 0 }));
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("Flag_Invulnerability", new CSBBBool(false)));
+            monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("RegionTimeRecord",     new CSBBInt { value = 0 }));
+            monsterAppearNtf.Structure.Dead = 0;
+            monsterAppearNtf.Structure.ParentGuid = 0;
+            monsterAppearNtf.Structure.LastChildId = -1;
+            monsterAppearNtf.Structure.LcmState.MonsterID = netId;
+            monsterAppearNtf.Structure.LcmState.AnimSeqName = "Idle";
+            monsterAppearNtf.Structure.LcmState.MonsterPos = spawnPos;
+            monsterAppearNtf.Structure.LcmState.MonsterRot = new CSQuat(1.0f, 0, 0, 0);
+            monsterAppearNtf.Structure.LcmState.TargetSrvID = 0;
+            client.SendCsProtoStructurePacket(monsterAppearNtf);
+
+            // CMD 663 → type-8 render shell (NetId=0 is the only safe value — any real netId crashes).
+            // ParentGuid=12345 links this render entity to the CMD 662 logic entity (EntGuid=12345)
+            // via CryEngine's entity hierarchy: the visual shell follows the parent's transform
+            // automatically, without needing its own CMD 641 locomotion packets.
+            CsCsProtoStructurePacket<MonsterAppearNtfList> renderSpawn = CsProtoResponse.MonsterAppearNtfList;
+            renderSpawn.Structure.Appear.Add(new MonsterAppearNtf()
             {
-                logicNetId = netId;
+                NetId = 0,
+                SpawnType = 1,
+                MonsterInfoId = 50080,
+                Pose = new CSQuatT(spawnPos, new CSQuat(1.0f, 0, 0, 0)),
+                ParentGuid = 12345,
+            });
+            client.SendCsProtoStructurePacket(renderSpawn);
 
-                // CMD 662 → type-1 CMonster_Derived: AI, hitboxes, locomotion receiver
-                CsCsProtoStructurePacket<MonsterAppearNtf> monsterAppearNtf = CsProtoResponse.MonsterAppearNtf;
-                monsterAppearNtf.Structure.NetId = (int)netId;
-                monsterAppearNtf.Structure.SpawnType = 1;
-                monsterAppearNtf.Structure.MonsterInfoId = 50080;
-                monsterAppearNtf.Structure.EntGuid = 12345;
-                monsterAppearNtf.Structure.Name = "M008_RaptorCrimson";
-                monsterAppearNtf.Structure.Class = "EmCommon";
-                monsterAppearNtf.Structure.Pose = new CSQuatT(spawnPos, new CSQuat(1.0f, 0, 0, 0));
-                monsterAppearNtf.Structure.Faction = 2;
-                monsterAppearNtf.Structure.BTState = "Idle";
-                monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("IsMonster",            new CSBBBool(true)));
-                monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("MaxHealth",            new CSBBInt { value = 5000 }));
-                monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("TargetSrvID",          new CSBBInt { value = 0 }));
-                monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("TargetID",             new CSBBInt { value = 0 }));
-                monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("Flag_Invulnerability", new CSBBBool(false)));
-                monsterAppearNtf.Structure.BBVars.Vars.Add(new CSBBVar("RegionTimeRecord",     new CSBBInt { value = 0 }));
-                monsterAppearNtf.Structure.Dead = 0;
-                monsterAppearNtf.Structure.ParentGuid = 0;
-                monsterAppearNtf.Structure.LastChildId = -1;
-                monsterAppearNtf.Structure.LcmState.MonsterID = netId;
-                monsterAppearNtf.Structure.LcmState.AnimSeqName = "Idle";
-                monsterAppearNtf.Structure.LcmState.MonsterPos = spawnPos;
-                monsterAppearNtf.Structure.LcmState.MonsterRot = new CSQuat(1.0f, 0, 0, 0);
-                monsterAppearNtf.Structure.LcmState.TargetSrvID = 0;
-                client.SendCsProtoStructurePacket(monsterAppearNtf);
+            // CMD 528: activate the type-1 logic entity
+            CsCsProtoStructurePacket<MonsterActiveState> activeState = CsProtoResponse.MonsterActiveState;
+            activeState.Structure.SyncTime = 0;
+            activeState.Structure.ActiveState = 1;
+            activeState.Structure.MonsterId = netId;
+            activeState.Structure.Position = new XYZPosition() { x = spawnPos.x, y = spawnPos.y, z = spawnPos.z };
+            activeState.Structure.Rotation = new Quaternion() { x = 0, y = 0, z = 0, w = 1 };
+            client.SendCsProtoStructurePacket(activeState);
 
-                // CMD 528: activate the type-1 entity
-                CsCsProtoStructurePacket<MonsterActiveState> activeState = CsProtoResponse.MonsterActiveState;
-                activeState.Structure.SyncTime = 0;
-                activeState.Structure.ActiveState = 1;
-                activeState.Structure.MonsterId = netId;
-                activeState.Structure.Position = new XYZPosition() { x = spawnPos.x, y = spawnPos.y, z = spawnPos.z };
-                activeState.Structure.Rotation = new Quaternion() { x = 0, y = 0, z = 0, w = 1 };
-                client.SendCsProtoStructurePacket(activeState);
-            }
-            else if (entityType == 8)
-            {
-                renderNetId = netId;
-
-                // CMD 663 → type-8 render shell: mesh, animations.
-                // Uses its own unique netId (different from type-1) to avoid entity ID collision.
-                // MonsterAI will broadcast CMD 641 locomotion to this netId so the visible mesh moves.
-                CsCsProtoStructurePacket<MonsterAppearNtfList> renderSpawn = CsProtoResponse.MonsterAppearNtfList;
-                renderSpawn.Structure.Appear.Add(new MonsterAppearNtf()
-                {
-                    NetId = (int)netId,
-                    SpawnType = 1,
-                    MonsterInfoId = 50080,
-                    Pose = new CSQuatT(spawnPos, new CSQuat(1.0f, 0, 0, 0))
-                });
-                client.SendCsProtoStructurePacket(renderSpawn);
-
-                // CMD 528: activate the type-8 entity so it listens for CMD 641
-                CsCsProtoStructurePacket<MonsterActiveState> renderActive = CsProtoResponse.MonsterActiveState;
-                renderActive.Structure.SyncTime = 0;
-                renderActive.Structure.ActiveState = 1;
-                renderActive.Structure.MonsterId = netId;
-                renderActive.Structure.Position = new XYZPosition() { x = spawnPos.x, y = spawnPos.y, z = spawnPos.z };
-                renderActive.Structure.Rotation = new Quaternion() { x = 0, y = 0, z = 0, w = 1 };
-                client.SendCsProtoStructurePacket(renderActive);
-            }
+            _monsterAI.Spawn(netId, 0, 50080, spawnPos);
         }
-
-        if (logicNetId != 0)
-            _monsterAI.Spawn(logicNetId, renderNetId, 50080, spawnPos);
     }
 }

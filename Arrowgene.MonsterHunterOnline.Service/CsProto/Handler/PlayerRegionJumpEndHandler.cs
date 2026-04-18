@@ -35,17 +35,15 @@ public class PlayerRegionJumpEndHandler : CsProtoStructureHandler<PlayerRegionJu
             // Store spawn info for LoadEntityReqHandler to use in phase 3
             client.State.PendingMonsterSpawnPos = monsterPos;
 
-            uint logicNetId  = 0x10001; // type-1 CMonster_Derived (AI, hitboxes, locomotion)
-            uint renderNetId = 0x10002; // type-8 render shell (mesh, animations)
+            uint monsterNetId = 0x10001;
 
-            // Phase 1: Send EntityAppearNtfIdList (CMD 533) — announce both entities
-            // so the client requests full data for each in CMD 534 (LoadEntityReq).
+            // Phase 1: only announce the type-1 logic entity.
+            // CMD 663 (type-8 render shell) is pushed directly in LoadEntityReqHandler
+            // without going through CMD 533/534 — the client processes it as a standalone notification.
             CsCsProtoStructurePacket<EntityAppearNtfIdList> entityIds = CsProtoResponse.EntityAppearNtfIdList;
             entityIds.Structure.InitType = 0;
-            entityIds.Structure.LogicEntityId.Add(logicNetId);
+            entityIds.Structure.LogicEntityId.Add(monsterNetId);
             entityIds.Structure.LogicEntityType.Add(1);
-            entityIds.Structure.LogicEntityId.Add(renderNetId);
-            entityIds.Structure.LogicEntityType.Add(8);
             client.SendCsProtoStructurePacket(entityIds);
         }
     }

@@ -28,14 +28,14 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         public uint NextNetId() => Interlocked.Increment(ref _nextNetId);
 
         /// <summary>Registers a monster and starts its AI loop.</summary>
-        public MonsterAI Spawn(uint netId, int monsterInfoId, CSVec3 position)
+        public MonsterAI Spawn(uint netId, uint renderNetId, int monsterInfoId, CSVec3 position)
         {
-            var monster = new MonsterAI(netId, monsterInfoId, position, this);
+            var monster = new MonsterAI(netId, renderNetId, monsterInfoId, position, this);
             lock (_lock)
             {
                 _monsters[netId] = monster;
             }
-            Logger.Info($"MonsterAI spawned: netId={netId} infoId={monsterInfoId} pos=({position.x:F1},{position.y:F1},{position.z:F1})");
+            Logger.Info($"MonsterAI spawned: netId={netId} renderNetId={renderNetId} infoId={monsterInfoId} pos=({position.x:F1},{position.y:F1},{position.z:F1})");
             return monster;
         }
 

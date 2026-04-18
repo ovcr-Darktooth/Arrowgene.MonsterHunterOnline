@@ -17,6 +17,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private static readonly ILogger Logger = LogProvider.Logger(typeof(MonsterAI));
 
         public uint NetId { get; }
+        public uint RenderNetId { get; }
         public int MonsterInfoId { get; }
         public CSVec3 Position { get; private set; }
         public MonsterAIState State { get; private set; }
@@ -26,9 +27,10 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private long _syncTime;
         private bool _disposed;
 
-        public MonsterAI(uint netId, int monsterInfoId, CSVec3 spawnPos, MonsterAIManager manager)
+        public MonsterAI(uint netId, uint renderNetId, int monsterInfoId, CSVec3 spawnPos, MonsterAIManager manager)
         {
             NetId = netId;
+            RenderNetId = renderNetId;
             MonsterInfoId = monsterInfoId;
             Position = new CSVec3 { x = spawnPos.x, y = spawnPos.y, z = spawnPos.z };
             State = MonsterAIState.Idle;
@@ -125,6 +127,23 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                 SteeringEnabled = targetId != 0 ? (byte)1 : (byte)0,
             };
             _manager.BroadcastLcm(lcm);
+
+            if (RenderNetId != 0)
+            {
+                var renderLcm = new CSMonsterLocomotion
+                {
+                    MonsterID = RenderNetId,
+                    SyncTime = _syncTime,
+                    AnimSeqName = animSeq,
+                    MonsterPos = new CSVec3 { x = Position.x, y = Position.y, z = Position.z },
+                    MonsterRot = new CSQuat(1, 0, 0, 0),
+                    MoveSpeed = moveSpeed,
+                    TargetID = targetId,
+                    SetPos = 1,
+                    SteeringEnabled = targetId != 0 ? (byte)1 : (byte)0,
+                };
+                _manager.BroadcastLcm(renderLcm);
+            }
         }
 
         public void Dispose()

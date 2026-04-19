@@ -1,10 +1,9 @@
 ﻿using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Constant;
-using Arrowgene.MonsterHunterOnline.Protocol.Structures;
-using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
-using Arrowgene.MonsterHunterOnline.Protocol.Old;
+using Arrowgene.MonsterHunterOnline.Protocol.Old.ExtraStructures;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Structures;
+using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 using Arrowgene.MonsterHunterOnline.Service.Database;
 using Arrowgene.MonsterHunterOnline.Service.System;
 using Arrowgene.MonsterHunterOnline.Service.System.CharacterSystem;
@@ -146,5 +145,24 @@ public class InstanceVerifyReqHandler : CsProtoStructureHandler<InstanceVerifyRe
         // InstanceInitInfo.LevelId (received in EnterInstanceRsp from town server).
         // Sending LoadLevelNtf after causes a second load that may interfere with
         // CGameRules initialization from the first load.
+
+        // Phase 1 of the 3-phase monster spawn protocol.
+        // We spawn here (after CMD 668) because:
+        //   - CMHLevelInfo is populated from the loaded map data (MapID=1004 for hunting levels)
+        //   - Event 0x25D dispatcher is registered by CBattleGround init from CMD 668
+        //   Without both, CMD 663 would fail to create the type-1 (movable) entity.
+        // Store spawn position 10 units from player for LoadEntityReqHandler (phase 3).
+        client.State.PendingMonsterSpawnPos = new CSVec3
+        {
+            x = playerInitInfo.Structure.Pose.t.x + 10f,
+            y = playerInitInfo.Structure.Pose.t.y + 10f,
+            z = playerInitInfo.Structure.Pose.t.z
+        };
+
+        CsCsProtoStructurePacket<EntityAppearNtfIdList> entityIds = CsProtoResponse.EntityAppearNtfIdList;
+        entityIds.Structure.InitType = 0;
+        entityIds.Structure.LogicEntityId.Add(0x10001);
+        entityIds.Structure.LogicEntityType.Add(1);
+        client.SendCsProtoStructurePacket(entityIds);
     }
 }

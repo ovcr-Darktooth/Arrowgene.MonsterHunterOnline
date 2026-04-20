@@ -1,4 +1,4 @@
-﻿using Arrowgene.Logging;
+using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Constant;
 using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
@@ -22,7 +22,6 @@ public class LeaveInstanceReqHandler : CsProtoStructureHandler<LeaveInstanceReq>
 
     public override void Handle(Client client, LeaveInstanceReq req)
     {
-        client.State.StopBattleMonsterLoop();
         client.State.PendingMonsterSpawnPos = null;
         client.State.PendingMonsterNetId = null;
 

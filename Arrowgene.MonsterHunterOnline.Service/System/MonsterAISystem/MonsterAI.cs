@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Threading;
 using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
+using Arrowgene.MonsterHunterOnline.Service.Data;
 
 namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
 {
@@ -10,9 +11,9 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
     public class MonsterAI : IDisposable
     {
         private const float AggroRange = 500f;
-        private const float AttackRange = 6f;
-        private const float MoveSpeedPerTick = 3f;
-        private const int TickMs = 1000;
+        private const float AttackRange = 5.0f;
+        private const float MoveSpeedPerTick = 1.5f;
+        private const int TickMs = 200;
 
         private static readonly ILogger Logger = LogProvider.Logger(typeof(MonsterAI));
 
@@ -23,11 +24,19 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         public MonsterAIState State { get; private set; }
 
         private readonly MonsterAIManager _manager;
+        private readonly SequenceManager _sequenceManager;
+        private SequenceSet _sequenceSet;
+
         private Timer _timer;
         private long _syncTime;
         private bool _disposed;
 
-        public MonsterAI(uint netId, uint renderNetId, int monsterInfoId, CSVec3 spawnPos, MonsterAIManager manager)
+        // Sequence State
+        private SequenceData _currentSequence;
+        private float _sequenceTime;
+        private CSVec3 _sequenceStartPos;
+        
+        public MonsterAI(uint netId, uint renderNetId, int monsterInfoId, CSVec3 spawnPos, MonsterAIManager manager, SequenceManager sequenceManager)
         {
             NetId = netId;
             RenderNetId = renderNetId;
@@ -35,7 +44,19 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             Position = new CSVec3 { x = spawnPos.x, y = spawnPos.y, z = spawnPos.z };
             State = MonsterAIState.Idle;
             _manager = manager;
+            _sequenceManager = sequenceManager;
+
+            string refName = GetMonsterRefName(monsterInfoId);
+            _sequenceSet = _sequenceManager?.GetOrLoad(refName);
+
             _timer = new Timer(Tick, null, TickMs, TickMs);
+        }
+
+        private string GetMonsterRefName(int infoId)
+        {
+            if (infoId == 60030) return "em003"; // Test Bulldrome
+            if (infoId == 39004) return "em003";
+            return "em001";
         }
 
         private void Tick(object _)
@@ -44,10 +65,31 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
 
             try
             {
-                _syncTime += TickMs;
                 var (target, dist) = _manager.FindNearestPlayer(Position);
 
-                Logger.Info($"Monster {NetId} tick: target={(target == null ? "NULL" : target.Identity)}, dist={(dist == float.MaxValue ? "MAX(no pos)" : dist.ToString("F1"))}, state={State}");
+                // If executing a sequence, lock state until it finishes
+                if (_currentSequence != null)
+                {
+                    _sequenceTime += (TickMs / 1000f);
+
+                    if (_sequenceTime >= _currentSequence.TimeRange)
+                    {
+                        Logger.Debug($"Monster {NetId} finished sequence {_currentSequence.Name}");
+                        _currentSequence = null; 
+                    }
+                    else
+                    {
+                        // Check hitboxes
+                        foreach (var hitEvent in _currentSequence.PhysicEvents)
+                        {
+                            if (Math.Abs(_sequenceTime - hitEvent.Time) < (TickMs / 1000f))
+                            {
+                                Logger.Info($"Monster {NetId} HitEvent -> {hitEvent.Name} (Firemode:{hitEvent.Firemode}, AttackData:{hitEvent.AttackData})");
+                            }
+                        }
+                        return; // Lock behavior while animating
+                    }
+                }
 
                 if (target == null || dist > AggroRange)
                 {
@@ -55,58 +97,67 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                     {
                         State = MonsterAIState.Idle;
                         Logger.Debug($"Monster {NetId} -> Idle");
-                        // Notify clients: monster is still active but returned to idle
-                        _manager.BroadcastMonsterActiveState(NetId, 1, Position, _syncTime);
+                        _manager.BroadcastMonsterActiveState(NetId, 1, Position, CurrentSyncTimeMs());
                     }
-                    BroadcastLocomotion("Idle", 0, new CSVec3());
-                    _manager.BroadcastMonsterActiveState(0, 1, Position, _syncTime);
+                    if (_currentSequence == null)
+                    {
+                        // Optionally broadcast idle, but playerstate didn't bother when target was lost, just didn't send anything.
+                    }
                     return;
                 }
 
                 uint targetId = target.Character?.Id ?? 0;
-                CSVec3 targetPos = target.State.Position;
-                float dx = targetPos.x - Position.x;
-                float dy = targetPos.y - Position.y;
-                float dz = targetPos.z - Position.z;
+                CSVec3 targetPos = target.State.Position ?? target.State.InitSpawnPos;
+                float dist2D = Distance2D(Position, targetPos);
+                float tickSeconds = TickMs / 1000f;
 
-                if (dist <= AttackRange)
+                if (dist2D <= AttackRange)
                 {
-                    if (State != MonsterAIState.Attack)
+                    State = MonsterAIState.Attack;
+                    
+                    // Same as PlayerState.cs: when attacking, lock position and send sequence info
+                    CSQuat rot = LookAtQuat(Position, targetPos);
+                    CSVec3 zeroSpeed = new(0, 0, 0);
+
+                    string attackSequence = "Head"; // Default fallback
+                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Attack")) attackSequence = "Attack";
+                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Head")) attackSequence = "Head";
+
+                    SendLocomotion(Position, rot, targetPos, zeroSpeed, attackSequence, 0, true, true);
+                    SendMovestate(Position, rot, zeroSpeed);
+                    BroadcastSequenceState(attackSequence, 0f, Position, rot);
+
+                    // Lock sequence
+                    if (_sequenceSet != null && _sequenceSet.Sequences.TryGetValue(attackSequence, out var seq))
                     {
-                        State = MonsterAIState.Attack;
-                        Logger.Debug($"Monster {NetId} -> Attack target={targetId}");
-                        // Notify clients: monster entered attack state
-                        _manager.BroadcastMonsterActiveState(NetId, 1, Position, _syncTime);
+                        _currentSequence = seq;
+                        _sequenceTime = 0f;
                     }
-                    BroadcastLocomotion("Attack", targetId, new CSVec3());
-                    _manager.BroadcastMonsterActiveState(0, 1, Position, _syncTime);
+                    else
+                    {
+                        // Fake sequence lock if no data (like PlayerState did with 1.63 seconds)
+                        _currentSequence = new SequenceData { Name = attackSequence, TimeRange = 1.63f };
+                        _sequenceTime = 0f;
+                    }
+
+                    // Optional cooldown can be simulated by adding extra TimeRange
                 }
                 else
                 {
-                    if (State != MonsterAIState.Chase)
-                    {
-                        State = MonsterAIState.Chase;
-                        Logger.Debug($"Monster {NetId} -> Chase target={targetId}");
-                        // Notify clients: monster started chasing
-                        _manager.BroadcastMonsterActiveState(NetId, 1, Position, _syncTime);
-                    }
-                    float scale = MoveSpeedPerTick / dist;
-                    Position = new CSVec3
-                    {
-                        x = Position.x + dx * scale,
-                        y = Position.y + dy * scale,
-                        z = Position.z + dz * scale,
-                    };
-                    float tickSec = TickMs / 1000f;
-                    var speed = new CSVec3
-                    {
-                        x = (dx * scale) / tickSec,
-                        y = (dy * scale) / tickSec,
-                        z = (dz * scale) / tickSec,
-                    };
-                    Logger.Debug($"Monster {NetId} -> Moving to target={targetId}");
-                    BroadcastLocomotion("Run_F", targetId, speed);
-                    _manager.BroadcastMonsterActiveState(0, 1, Position, _syncTime);
+                    State = MonsterAIState.Chase;
+                    
+                    CSVec3 nextPos = StepToward(Position, targetPos, MoveSpeedPerTick);
+                    CSQuat moveRot = LookAtQuat(Position, targetPos);
+                    CSVec3 moveSpeed = ComputeVelocity(Position, nextPos, tickSeconds);
+
+                    string moveSequence = "Run";
+                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Dash")) moveSequence = "Dash";
+                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Run_F")) moveSequence = "Run_F";
+
+                    SendLocomotion(Position, moveRot, nextPos, moveSpeed, moveSequence, 0, false, false);
+                    SendMovestate(nextPos, moveRot, moveSpeed);
+
+                    Position = CloneVec(nextPos);
                 }
             }
             catch (Exception ex)
@@ -115,38 +166,53 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             }
         }
 
-        private void BroadcastLocomotion(string animSeq, uint targetId, CSVec3 moveSpeed)
+        private void SendLocomotion(CSVec3 position, CSQuat rotation, CSVec3 targetPos, CSVec3 moveSpeed, string animSequence, uint skillId, bool restartAnim, bool needTargetAttackPos)
         {
-            var lcm = new CSMonsterLocomotion
+            var locomotion = new CSMonsterLocomotion
+            {
+                SteeringEnabled = 1,
+                SyncTime = CurrentSyncTimeMs(),
+                MonsterID = NetId,
+                AnimSeqName = animSequence ?? string.Empty,
+                SkillID = (int)skillId,
+                MoveSpeed = CloneVec(moveSpeed),
+                MonsterPos = CloneVec(position),
+                MonsterRot = rotation,
+                TargetDis = new CSVec3(targetPos.x - position.x, targetPos.y - position.y, targetPos.z - position.z),
+                TargetAttackPos = CloneVec(targetPos),
+                NeedTargetAttackPos = needTargetAttackPos ? (byte)1 : (byte)0,
+                SkillSpeed = 1.0f,
+                RestartAnim = restartAnim ? (byte)1 : (byte)0,
+                SetRotate = 1,
+                SetPos = 1,
+            };
+            _manager.BroadcastLcm(locomotion);
+        }
+
+        private void SendMovestate(CSVec3 position, CSQuat rotation, CSVec3 speed)
+        {
+            var movestate = new CSMonsterMovestate
+            {
+                SyncTime = CurrentSyncTimeMs(),
+                MonsterID = NetId,
+                Location = CloneVec(position),
+                Rotation = rotation,
+                Speed = CloneVec(speed),
+            };
+            _manager.BroadcastMovestate(movestate);
+        }
+
+        private void BroadcastSequenceState(string animSeq, float curTime, CSVec3 pos, CSQuat rot)
+        {
+            var sq = new CSMonsterSequenceState
             {
                 MonsterID = NetId,
-                SyncTime = _syncTime,
-                AnimSeqName = animSeq,
-                MonsterPos = new CSVec3 { x = Position.x, y = Position.y, z = Position.z },
-                MonsterRot = new CSQuat(1, 0, 0, 0),
-                MoveSpeed = moveSpeed,
-                TargetID = targetId,
-                SetPos = 1,
-                SteeringEnabled = targetId != 0 ? (byte)1 : (byte)0,
+                AnimSeqName = animSeq ?? string.Empty,
+                CurTime = curTime,
+                Location = CloneVec(pos),
+                Rotation = rot
             };
-            _manager.BroadcastLcm(lcm);
-
-            if (RenderNetId != 0)
-            {
-                var renderLcm = new CSMonsterLocomotion
-                {
-                    MonsterID = RenderNetId,
-                    SyncTime = _syncTime,
-                    AnimSeqName = animSeq,
-                    MonsterPos = new CSVec3 { x = Position.x, y = Position.y, z = Position.z },
-                    MonsterRot = new CSQuat(1, 0, 0, 0),
-                    MoveSpeed = moveSpeed,
-                    TargetID = targetId,
-                    SetPos = 1,
-                    SteeringEnabled = targetId != 0 ? (byte)1 : (byte)0,
-                };
-                _manager.BroadcastLcm(renderLcm);
-            }
+            _manager.BroadcastSequenceState(sq);
         }
 
         public void Dispose()
@@ -154,8 +220,73 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             _disposed = true;
             _timer?.Dispose();
             _timer = null;
-            // ActiveState=0 signals the client to deactivate this monster entity
-            _manager.BroadcastMonsterActiveState(NetId, 0, Position, _syncTime);
+            _manager.BroadcastMonsterActiveState(NetId, 0, Position, CurrentSyncTimeMs());
+        }
+
+        // --- MATH REPLICATED FROM PLAYERSTATE.CS TO ENSURE PERFECT NETWORK SYNCHRONIZATION ---
+
+        private static float Distance2D(CSVec3 from, CSVec3 to)
+        {
+            if (from == null || to == null) return 9999f;
+            float deltaX = to.x - from.x;
+            float deltaY = to.y - from.y;
+            return MathF.Sqrt((deltaX * deltaX) + (deltaY * deltaY));
+        }
+
+        private static CSVec3 StepToward(CSVec3 from, CSVec3 to, float maxStep)
+        {
+            float dx = to.x - from.x;
+            float dy = to.y - from.y;
+            float dist = MathF.Sqrt(dx * dx + dy * dy);
+            if (dist <= maxStep)
+            {
+                return new CSVec3(to.x, to.y, from.z);
+            }
+
+            float scale = maxStep / dist;
+            return new CSVec3(from.x + dx * scale, from.y + dy * scale, from.z);
+        }
+
+        private static long CurrentSyncTimeMs()
+        {
+            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
+
+        private static CSQuat LookAtQuat(CSVec3 from, CSVec3 to)
+        {
+            float deltaX = to.x - from.x;
+            float deltaY = to.y - from.y;
+
+            if (MathF.Abs(deltaX) < 0.001f && MathF.Abs(deltaY) < 0.001f)
+            {
+                return new CSQuat(1.0f, 0, 0, 0);
+            }
+
+            return YawQuat(MathF.Atan2(deltaY, deltaX));
+        }
+
+        private static CSQuat YawQuat(float yaw)
+        {
+            float halfYaw = yaw * 0.5f;
+            return new CSQuat(MathF.Cos(halfYaw), 0, 0, MathF.Sin(halfYaw));
+        }
+
+        private static CSVec3 ComputeVelocity(CSVec3 from, CSVec3 to, float deltaSeconds)
+        {
+            if (deltaSeconds <= 0.0f)
+            {
+                return new CSVec3();
+            }
+
+            return new CSVec3(
+                (to.x - from.x) / deltaSeconds,
+                (to.y - from.y) / deltaSeconds,
+                (to.z - from.z) / deltaSeconds);
+        }
+
+        private static CSVec3 CloneVec(CSVec3 vec)
+        {
+            return new CSVec3(vec.x, vec.y, vec.z);
         }
     }
 }

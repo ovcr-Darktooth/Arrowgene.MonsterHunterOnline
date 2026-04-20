@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Arrowgene.Buffers;
 using Arrowgene.Logging;
@@ -62,7 +62,6 @@ namespace Arrowgene.MonsterHunterOnline.Service
 
         public void Close()
         {
-            State.StopBattleMonsterLoop();
             _socket.Close();
         }
 

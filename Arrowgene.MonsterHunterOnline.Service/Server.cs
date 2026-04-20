@@ -1,4 +1,4 @@
-﻿using Arrowgene.Logging;
+using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Handler;
 using Arrowgene.MonsterHunterOnline.Service.Database;
@@ -11,6 +11,7 @@ using Arrowgene.MonsterHunterOnline.Service.System.ChatSystem.Log;
 using Arrowgene.MonsterHunterOnline.Service.System.ClientAssetSystem;
 using Arrowgene.MonsterHunterOnline.Service.System.ItemSystem;
 using Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem;
+using Arrowgene.MonsterHunterOnline.Service.Data;
 using Arrowgene.MonsterHunterOnline.Service.TqqApi;
 using Arrowgene.MonsterHunterOnline.Service.TqqApi.Handler;
 using Arrowgene.MonsterHunterOnline.Service.Web;
@@ -61,7 +62,9 @@ namespace Arrowgene.MonsterHunterOnline.Service
             CharacterManager = new CharacterManager(Database);
             Chat = new ChatManager(ClientManager);
             ItemManager = new ItemManager(Database, Assets);
-            MonsterAI = new MonsterAIManager(ClientManager);
+            SequenceManager = new SequenceManager(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\extracted\libs\sequencegroup");
+            SequenceManager.LoadAll();
+            MonsterAI = new MonsterAIManager(ClientManager, SequenceManager);
 
             _tpduConsumer.ClientConnected += ClientManager.Add;
             _tpduConsumer.ClientDisconnected += ClientManager.Remove;
@@ -79,6 +82,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
         public IDatabase Database { get; }
         public AssetRepository Assets { get; }
         public ItemManager ItemManager { get; }
+        public SequenceManager SequenceManager { get; }
         public MonsterAIManager MonsterAI { get; }
         private IDatabase CreateDatabase()
         {

@@ -98,7 +98,7 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<LoadEntityReq>
 
             client.State.PendingMonsterSpawnPos = null;
             client.State.PendingMonsterNetId = null;
-            client.State.StartBattleMonsterLoop(netId, spawnPos);
+            PlayerState.Server.MonsterAI.Spawn(netId, (uint)monster.EntGuid, BattleMonsterInfoId, spawnPos);
             return;
         }
 

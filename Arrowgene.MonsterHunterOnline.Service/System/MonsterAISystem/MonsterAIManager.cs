@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Arrowgene.Logging;
@@ -6,6 +6,7 @@ using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
+using Arrowgene.MonsterHunterOnline.Service.Data;
 
 namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
 {
@@ -17,12 +18,14 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private static uint _nextNetId = 1000;
 
         private ClientManager _clientManager;
+        private SequenceManager _sequenceManager;
         private readonly Dictionary<uint, MonsterAI> _monsters = new();
         private readonly object _lock = new();
 
-        public MonsterAIManager(ClientManager clientManager)
+        public MonsterAIManager(ClientManager clientManager, SequenceManager sequenceManager)
         {
             _clientManager = clientManager;
+            _sequenceManager = sequenceManager;
         }
 
         public uint NextNetId() => Interlocked.Increment(ref _nextNetId);
@@ -30,7 +33,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         /// <summary>Registers a monster and starts its AI loop.</summary>
         public MonsterAI Spawn(uint netId, uint renderNetId, int monsterInfoId, CSVec3 position)
         {
-            var monster = new MonsterAI(netId, renderNetId, monsterInfoId, position, this);
+            var monster = new MonsterAI(netId, renderNetId, monsterInfoId, position, this, _sequenceManager);
             lock (_lock)
             {
                 _monsters[netId] = monster;
@@ -109,6 +112,26 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             {
                 try { c.SendCsPacket(packet); }
                 catch (Exception ex) { Logger.Error($"BroadcastLcm to {c.Identity}: {ex.Message}"); }
+            }
+        }
+
+        public void BroadcastMovestate(CSMonsterMovestate movestate)
+        {
+            var packet = NewCsPacket.MonsterMovestate(movestate);
+            foreach (Client c in _clientManager.GetAll())
+            {
+                try { c.SendCsPacket(packet); }
+                catch (Exception ex) { Logger.Error($"BroadcastMovestate to {c.Identity}: {ex.Message}"); }
+            }
+        }
+
+        public void BroadcastSequenceState(CSMonsterSequenceState seqState)
+        {
+            var packet = NewCsPacket.MonsterSequenceState(seqState);
+            foreach (Client c in _clientManager.GetAll())
+            {
+                try { c.SendCsPacket(packet); }
+                catch (Exception ex) { Logger.Error($"BroadcastSequenceState to {c.Identity}: {ex.Message}"); }
             }
         }
 

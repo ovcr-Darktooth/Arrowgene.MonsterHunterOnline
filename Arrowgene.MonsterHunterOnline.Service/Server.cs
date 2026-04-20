@@ -147,7 +147,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
             _csProtoPacketHandler.AddHandler(new LeaveInstanceReqHandler());
             _csProtoPacketHandler.AddHandler(new LevelHuntingModeUpdateHandler());
             _csProtoPacketHandler.AddHandler(new LineUpBigRandHandler());
-            _csProtoPacketHandler.AddHandler(new LoadEntityReqHandler(MonsterAI));
+            _csProtoPacketHandler.AddHandler(new LoadEntityReqHandler());
             _csProtoPacketHandler.AddHandler(new MainInstanceAgreeOptReqHandler(Setting));
             _csProtoPacketHandler.AddHandler(new MainInstanceEnterOptReqHandler());
             _csProtoPacketHandler.AddHandler(new MainInstanceOptSynReqHandler());

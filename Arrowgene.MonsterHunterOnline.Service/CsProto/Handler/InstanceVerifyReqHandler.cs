@@ -121,18 +121,27 @@ public class InstanceVerifyReqHandler : CsProtoStructureHandler<InstanceVerifyRe
         }
 
         _characterManager.PopulatePlayerInitInfo(client, client.Character, playerInitInfo.Structure);
+        // Store spawn position for SpawnPlayer (CMD 516) in EnterLevelNtfHandler
+        client.State.Position = new CSVec3()
+        {
+            x = playerInitInfo.Structure.Pose.t.x,
+            y = playerInitInfo.Structure.Pose.t.y,
+            z = playerInitInfo.Structure.Pose.t.z
+        };
         client.SendCsProtoStructurePacket(playerInitInfo);
+        Logger.Info(client, $"Sent CMD 667 PlayerInitInfo LevelId={level} Pos=({playerInitInfo.Structure.Pose.t.x:F3}, {playerInitInfo.Structure.Pose.t.y:F3}, {playerInitInfo.Structure.Pose.t.z:F3})");
 
         CsCsProtoStructurePacket<InstanceVerifyRsp> instanceVerifyRsp = CsProtoResponse.InstanceVerifyRsp;
         client.SendCsProtoStructurePacket(instanceVerifyRsp);
+        Logger.Info(client, "Sent CMD 13 InstanceVerifyRsp");
 
         // Send standalone InstanceInitInfo (CMD 668) on battle server to trigger
         // CBattleGround initialization callbacks at CGameLogic+0x6F8.
         CsCsProtoStructurePacket<InstanceInitInfo> instanceInitInfo = CsProtoResponse.InstanceInitInfo;
-        instanceInitInfo.Structure.BattleGroundId = 0;
+        instanceInitInfo.Structure.BattleGroundId = 1;
         instanceInitInfo.Structure.LevelId = level;
         instanceInitInfo.Structure.CreateMaxPlayerCount = 4;
-        instanceInitInfo.Structure.GameMode = GameMode.Casual;
+        instanceInitInfo.Structure.GameMode = GameMode.Standard;
         instanceInitInfo.Structure.TimeType = TimeType.Noon;
         instanceInitInfo.Structure.WeatherType = WeatherType.Sunny;
         instanceInitInfo.Structure.Time = 1;
@@ -140,29 +149,12 @@ public class InstanceVerifyReqHandler : CsProtoStructureHandler<InstanceVerifyRe
         instanceInitInfo.Structure.WarningFlag = 0;
         instanceInitInfo.Structure.CreatePlayerMaxLv = 99;
         client.SendCsProtoStructurePacket(instanceInitInfo);
+        Logger.Info(client, $"Sent CMD 668 InstanceInitInfo BattleGroundId={instanceInitInfo.Structure.BattleGroundId} LevelId={instanceInitInfo.Structure.LevelId} GameMode={instanceInitInfo.Structure.GameMode}");
 
-        // NOTE: CSLoadLevelNtf removed — the client auto-loads the level from
-        // InstanceInitInfo.LevelId (received in EnterInstanceRsp from town server).
-        // Sending LoadLevelNtf after causes a second load that may interfere with
-        // CGameRules initialization from the first load.
-
-        // Phase 1 of the 3-phase monster spawn protocol.
-        // We spawn here (after CMD 668) because:
-        //   - CMHLevelInfo is populated from the loaded map data (MapID=1004 for hunting levels)
-        //   - Event 0x25D dispatcher is registered by CBattleGround init from CMD 668
-        //   Without both, CMD 663 would fail to create the type-1 (movable) entity.
-        // Store spawn position 10 units from player for LoadEntityReqHandler (phase 3).
-        client.State.PendingMonsterSpawnPos = new CSVec3
-        {
-            x = playerInitInfo.Structure.Pose.t.x + 10f,
-            y = playerInitInfo.Structure.Pose.t.y + 10f,
-            z = playerInitInfo.Structure.Pose.t.z
-        };
-
-        CsCsProtoStructurePacket<EntityAppearNtfIdList> entityIds = CsProtoResponse.EntityAppearNtfIdList;
-        entityIds.Structure.InitType = 0;
-        entityIds.Structure.LogicEntityId.Add(0x10001);
-        entityIds.Structure.LogicEntityType.Add(1);
-        client.SendCsProtoStructurePacket(entityIds);
+        // Send CSLoadLevelNtf to trigger full CryEngine level load.
+        // This populates CMonsterInfo from local .dat files (monsterdata.dat/npcdatanew.dat).
+        // Without it, CMonsterInfo hash table is empty and SpawnMonsters can't load models.
+        client.SendCsPacket(NewCsPacket.LoadLevelNtf(new CSLoadLevelNtf() { Reserve = 0 }));
+        Logger.Info(client, $"Sent CMD 518 LoadLevelNtf LevelId={level}");
     }
 }

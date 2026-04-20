@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Threading;
 using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Constant;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.ExtraStructures;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
+using Arrowgene.MonsterHunterOnline.Service.System;
 
 namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Handler;
 
@@ -13,38 +13,47 @@ public class PlayerRegionJumpEndHandler : CsProtoStructureHandler<PlayerRegionJu
     private static readonly ServiceLogger Logger =
         LogProvider.Logger<ServiceLogger>(typeof(PlayerRegionJumpEnd));
 
-    public override CS_CMD_ID Cmd => CS_CMD_ID.CS_CMD_PLAYER_REGION_JUMP_END;
+    private static int _nextMonsterUniqueId;
 
+    public override CS_CMD_ID Cmd => CS_CMD_ID.CS_CMD_PLAYER_REGION_JUMP_END;
 
     public override void Handle(Client client, PlayerRegionJumpEnd req)
     {
-        // Spawn a pending combat monster now that the client has finished loading the new region
-        if (client.State.PendingMonsterSpawnPos != null)
+        if (client.State.PendingMonsterSpawnPos == null)
         {
-            CSVec3 monsterPos = client.State.PendingMonsterSpawnPos;
-            client.State.PendingMonsterSpawnPos = null;
-
-            // 3-phase spawn protocol (traced from CMonsterSpawner binary):
-            // Phase 1: CMD 533 → AddToSpawnQueue → adds to spawn queue at +0x849a8
-            // Phase 2: Client sends CMD 534 (LoadEntityReq) back requesting full data
-            // Phase 3: Server responds CMD 662 (single MonsterAppearNtf) → SpawnMonsters (type 1)
-            //
-            // CMD 662 (single) → SpawnMonsters creates PROPER type-1 CMonster_Derived entities
-            // CMD 663 (list) → FUN_112a3ac0 creates BROKEN type-8 entities (always crashes)
-            //
-            // Store spawn info for LoadEntityReqHandler to use in phase 3
-            client.State.PendingMonsterSpawnPos = monsterPos;
-
-            uint monsterNetId = 0x10001;
-
-            // Phase 1: only announce the type-1 logic entity.
-            // CMD 663 (type-8 render shell) is pushed directly in LoadEntityReqHandler
-            // without going through CMD 533/534 — the client processes it as a standalone notification.
-            CsCsProtoStructurePacket<EntityAppearNtfIdList> entityIds = CsProtoResponse.EntityAppearNtfIdList;
-            entityIds.Structure.InitType = 0;
-            entityIds.Structure.LogicEntityId.Add(monsterNetId);
-            entityIds.Structure.LogicEntityType.Add(1);
-            client.SendCsProtoStructurePacket(entityIds);
+            return;
         }
+
+        if (client.State.PendingMonsterNetId != null)
+        {
+            Logger.Info(client, $"Skip duplicate battle monster queue for pending NetId=0x{client.State.PendingMonsterNetId.Value:X8}");
+            return;
+        }
+
+        uint monsterNetId = NextMonsterNetId();
+        client.State.PendingMonsterNetId = monsterNetId;
+
+        CsCsProtoStructurePacket<EntityAppearNtfIdList> entityAppear = CsProtoResponse.EntityAppearNtfIdList;
+        entityAppear.Structure.InitType = 1;
+        entityAppear.Structure.LogicEntityId.Add(monsterNetId);
+        entityAppear.Structure.LogicEntityType.Add((uint)LogicEntityType.MH_LETYPE_MONSTER);
+
+        Logger.Info(client,
+            $"Queue battle monster spawn NetId=0x{monsterNetId:X8} Type={(uint)LogicEntityType.MH_LETYPE_MONSTER} Pos={FormatVec(client.State.PendingMonsterSpawnPos)} via CMD 533");
+
+        client.SendCsProtoStructurePacket(entityAppear);
+    }
+
+    private static uint NextMonsterNetId()
+    {
+        LogicEntityId entityId = new();
+        entityId.Type = LogicEntityType.MH_LETYPE_MONSTER;
+        entityId.UniqueId = (uint)Interlocked.Increment(ref _nextMonsterUniqueId);
+        return entityId.Id;
+    }
+
+    private static string FormatVec(CSVec3 vec)
+    {
+        return $"({vec.x:F3}, {vec.y:F3}, {vec.z:F3})";
     }
 }

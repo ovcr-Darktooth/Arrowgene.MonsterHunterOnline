@@ -55,9 +55,9 @@ public class BattleResultReqHandler : CsProtoStructureHandler<CSInstanceResultRe
             catch { }
 
             // Send response back to the requesting client
-            var packet = new CsCsProtoStructurePacket<CSInstanceResultRsp>(CS_CMD_ID.CS_CMD_BATTLE_RESULT_RSP);
+            /*var packet = new CsCsProtoStructurePacket<CSInstanceResultRsp>(CS_CMD_ID.CS_CMD_BATTLE_RESULT_RSP);
             packet.Structure = rsp;
-            client.SendCsProtoStructurePacket(packet);
+            client.SendCsProtoStructurePacket(packet);*/
 
             Logger.Info(client, "Sent CSInstanceResultRsp (battle result)");
         }

@@ -178,6 +178,19 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             }
         }
 
+        /// <summary>
+        /// Broadcasts instance finish response (end of mission) to all clients.
+        /// </summary>
+        public void BroadcastInstanceFinish(CSInstanceFinishRsp rsp)
+        {
+            var packet = NewCsPacket.InstanceFinishRsp(rsp);
+            foreach (Client c in _clientManager.GetAll())
+            {
+                try { c.SendCsPacket(packet); }
+                catch (Exception ex) { Logger.Error($"BroadcastInstanceFinish to {c.Identity}: {ex.Message}"); }
+            }
+        }
+
         public void PlayerMoved(Client client)
         {
             // ex : réveiller les monstres proches, recalculer cible, etc.

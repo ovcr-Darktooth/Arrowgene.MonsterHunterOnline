@@ -37,7 +37,7 @@ public class BattleDMGHandler : CsProtoStructureHandler<BattleDMG>
 
     public override CS_CMD_ID Cmd => CS_CMD_ID.CS_CMD_BATTLE_DMG_VERIFY;
 
-    private const int FallbackDamage = 10;
+    private const int FallbackDamage = 200;
 
     public override void Handle(Client client, BattleDMG req)
     {
@@ -104,7 +104,8 @@ public class BattleDMGHandler : CsProtoStructureHandler<BattleDMG>
         {
             Logger.Info(client, $"[705] monster {monster.NetId} died from player hit");
             _monsterAi.BroadcastMonsterActiveState(monster.NetId, 0, monster.Position, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
-            _monsterAi.Despawn(monster.NetId);
+            //_monsterAi.Despawn(monster.NetId);
+            monster.makeDie();
         }
     }
 

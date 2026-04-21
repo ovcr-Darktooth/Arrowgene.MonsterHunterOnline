@@ -154,7 +154,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                     string attackSequence = "Head"; // Default fallback
                     if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Attack")) attackSequence = "Attack";
                     if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Head")) attackSequence = "Head";
-                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("DragonDash")) attackSequence = "DragonDash";
+                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("DragonDash")) attackSequence = "Idle";
 
                     SendLocomotion(Position, rot, targetPos, zeroSpeed, attackSequence, 0, true, true);
                     SendMovestate(Position, rot, zeroSpeed);
@@ -249,6 +249,31 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                 Rotation = rot
             };
             _manager.BroadcastSequenceState(sq);
+        }
+
+        public void makeDie()
+        {
+            CSQuat rot = new CSQuat();
+            CSVec3 zeroSpeed = new(0, 0, 0);
+            SendLocomotion(Position, rot, Position, zeroSpeed, "Die", 0, true, true);
+            SendMovestate(Position, rot, zeroSpeed);
+            BroadcastSequenceState("Die", 0f, Position, rot);
+            //send packet CS_CMD_INSTANCE_FINISH_RSP
+            try
+            {
+                var finish = new CSInstanceFinishRsp
+                {
+                    ShowFlag = 1, // enter countdown flow
+                    CountDownSeconds = 60, // start a 60 seconds timer
+                    WinFlag = 1 // mark as win (1 = win)
+                };
+                _manager.BroadcastInstanceFinish(finish);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Monster {NetId} failed to broadcast instance finish: {ex.Message}");
+            }
+            Dispose();
         }
 
         public void Dispose()

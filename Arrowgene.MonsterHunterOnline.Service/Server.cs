@@ -66,7 +66,9 @@ namespace Arrowgene.MonsterHunterOnline.Service
             SequenceManager.LoadAll();
             AttackDataTable = new AttackDataTable(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\static_csv");
             AttackDataTable.LoadAll();
-            MonsterAI = new MonsterAIManager(ClientManager, SequenceManager);
+            MonsterDefinitionTable = new MonsterDefinitionTable(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\static_csv");
+            MonsterDefinitionTable.LoadAll();
+            MonsterAI = new MonsterAIManager(ClientManager, SequenceManager, MonsterDefinitionTable);
 
             _tpduConsumer.ClientConnected += ClientManager.Add;
             _tpduConsumer.ClientDisconnected += ClientManager.Remove;
@@ -86,6 +88,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
         public ItemManager ItemManager { get; }
         public SequenceManager SequenceManager { get; }
         public AttackDataTable AttackDataTable { get; }
+        public MonsterDefinitionTable MonsterDefinitionTable { get; }
         public MonsterAIManager MonsterAI { get; }
         private IDatabase CreateDatabase()
         {
@@ -134,7 +137,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
             _csProtoPacketHandler.AddHandler(new BattleActorIdleMoveHandler());
             _csProtoPacketHandler.AddHandler(new BattleActorMoveStateHandler());
             _csProtoPacketHandler.AddHandler(new BattleActorStopMoveHandler());
-            _csProtoPacketHandler.AddHandler(new BattleDMGHandler());
+            _csProtoPacketHandler.AddHandler(new BattleDMGHandler(AttackDataTable, MonsterAI, ClientManager));
             _csProtoPacketHandler.AddHandler(new BattleDmgWithoutVerifyHandler(AttackDataTable, MonsterAI, ClientManager));
             _csProtoPacketHandler.AddHandler(new PlayerAbnormalNtfHandler(ClientManager));
             _csProtoPacketHandler.AddHandler(new ChangeAmmoReqHandler());

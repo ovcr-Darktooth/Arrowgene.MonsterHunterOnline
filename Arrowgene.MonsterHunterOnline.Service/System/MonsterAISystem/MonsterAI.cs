@@ -22,6 +22,8 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         public int MonsterInfoId { get; }
         public CSVec3 Position { get; private set; }
         public MonsterAIState State { get; private set; }
+        public int MaxHp { get; }
+        public int CurrentHp { get; set; }
 
         private readonly MonsterAIManager _manager;
         private readonly SequenceManager _sequenceManager;
@@ -39,13 +41,15 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private float _sequenceStartYaw;
         private (float x, float y, float z) _sequenceLocalOrigin;
         
-        public MonsterAI(uint netId, uint renderNetId, int monsterInfoId, CSVec3 spawnPos, MonsterAIManager manager, SequenceManager sequenceManager)
+        public MonsterAI(uint netId, uint renderNetId, int monsterInfoId, CSVec3 spawnPos, MonsterAIManager manager, SequenceManager sequenceManager, int maxHp)
         {
             NetId = netId;
             RenderNetId = renderNetId;
             MonsterInfoId = monsterInfoId;
             Position = new CSVec3 { x = spawnPos.x, y = spawnPos.y, z = spawnPos.z };
             State = MonsterAIState.Idle;
+            MaxHp = maxHp > 0 ? maxHp : 100;
+            CurrentHp = MaxHp;
             _manager = manager;
             _sequenceManager = sequenceManager;
 

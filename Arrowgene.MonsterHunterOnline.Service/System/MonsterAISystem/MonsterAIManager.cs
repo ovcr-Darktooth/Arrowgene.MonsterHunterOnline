@@ -19,13 +19,15 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
 
         private ClientManager _clientManager;
         private SequenceManager _sequenceManager;
+        private MonsterDefinitionTable _monsterDefinitions;
         private readonly Dictionary<uint, MonsterAI> _monsters = new();
         private readonly object _lock = new();
 
-        public MonsterAIManager(ClientManager clientManager, SequenceManager sequenceManager)
+        public MonsterAIManager(ClientManager clientManager, SequenceManager sequenceManager, MonsterDefinitionTable monsterDefinitions)
         {
             _clientManager = clientManager;
             _sequenceManager = sequenceManager;
+            _monsterDefinitions = monsterDefinitions;
         }
 
         public uint NextNetId() => Interlocked.Increment(ref _nextNetId);
@@ -33,12 +35,20 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         /// <summary>Registers a monster and starts its AI loop.</summary>
         public MonsterAI Spawn(uint netId, uint renderNetId, int monsterInfoId, CSVec3 position)
         {
-            var monster = new MonsterAI(netId, renderNetId, monsterInfoId, position, this, _sequenceManager);
+            int maxHp = 0;
+            string defName = null;
+            if (_monsterDefinitions != null && _monsterDefinitions.TryGet(monsterInfoId, out var def))
+            {
+                maxHp = def.MaxHealth;
+                defName = def.EntityName;
+            }
+
+            var monster = new MonsterAI(netId, renderNetId, monsterInfoId, position, this, _sequenceManager, maxHp);
             lock (_lock)
             {
                 _monsters[netId] = monster;
             }
-            Logger.Info($"MonsterAI spawned: netId={netId} renderNetId={renderNetId} infoId={monsterInfoId} pos=({position.x:F1},{position.y:F1},{position.z:F1})");
+            Logger.Info($"MonsterAI spawned: netId={netId} renderNetId={renderNetId} infoId={monsterInfoId} name={defName ?? "?"} hp={monster.CurrentHp}/{monster.MaxHp} pos=({position.x:F1},{position.y:F1},{position.z:F1})");
             return monster;
         }
 
@@ -48,6 +58,31 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             {
                 return _monsters.TryGetValue(netId, out monster);
             }
+        }
+
+        /// <summary>
+        /// Returns the nearest live monster (CurrentHp &gt; 0) to the given position, or null if none exist.
+        /// Used as a fallback when the client reports a CryEngine runtime entity ID that we can't
+        /// cross-reference to our server-assigned NetId.
+        /// </summary>
+        public MonsterAI FindNearestLiveMonster(CSVec3 from)
+        {
+            MonsterAI nearest = null;
+            float minDist = float.MaxValue;
+            lock (_lock)
+            {
+                foreach (var m in _monsters.Values)
+                {
+                    if (m.CurrentHp <= 0) continue;
+                    float d = Distance(from, m.Position);
+                    if (d < minDist)
+                    {
+                        minDist = d;
+                        nearest = m;
+                    }
+                }
+            }
+            return nearest;
         }
 
         /// <summary>Stops the AI loop and removes the monster.</summary>

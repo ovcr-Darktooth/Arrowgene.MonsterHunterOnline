@@ -29,6 +29,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private readonly SequenceManager _sequenceManager;
         private SequenceSet _sequenceSet;
         private readonly PartBreakComponent _partBreak;
+        private readonly StatusEffectComponent _status;
 
         private Timer _timer;
         private long _syncTime;
@@ -58,6 +59,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             _sequenceSet = _sequenceManager?.GetOrLoad(refName);
 
             _partBreak = new PartBreakComponent(monsterInfoId, partsTable);
+            _status = new StatusEffectComponent(monsterInfoId, partsTable);
 
             _timer = new Timer(Tick, null, TickMs, TickMs);
         }
@@ -82,6 +84,25 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                     CSQuat rot = _sequenceStartRot ?? new CSQuat(1f, 0, 0, 0);
                     BroadcastSequenceState(seqName, 0f, Position, rot);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Applies a hit to the part's unbalance buildup. If the stagger threshold is crossed,
+        /// broadcasts <c>Hit_Stun_&lt;partId&gt;</c> if the sequence exists in the loaded set.
+        /// </summary>
+        public void ApplyUnbalance(string partId, float rawDamage)
+        {
+            if (_status == null || string.IsNullOrEmpty(partId)) return;
+            if (!_status.ApplyHit(partId, rawDamage)) return;
+
+            string seqName = $"Hit_Stun_{partId}";
+            bool hasSeq = _sequenceSet != null && _sequenceSet.Sequences.ContainsKey(seqName);
+            Logger.Info($"Monster {NetId} part '{partId}' staggered (Unbalance threshold crossed) seq={(hasSeq ? seqName : "<none>")}");
+            if (hasSeq)
+            {
+                CSQuat rot = _sequenceStartRot ?? new CSQuat(1f, 0, 0, 0);
+                BroadcastSequenceState(seqName, 0f, Position, rot);
             }
         }
 

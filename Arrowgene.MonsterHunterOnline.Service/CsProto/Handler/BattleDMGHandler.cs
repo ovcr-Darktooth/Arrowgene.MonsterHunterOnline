@@ -101,6 +101,7 @@ public class BattleDMGHandler : CsProtoStructureHandler<BattleDMG>
         // every hit to "Head" using a Cut weapon multiplier. Real weapon/part resolution comes
         // once hashWeaponClass and req.partId decode are reverse-engineered.
         monster.ApplyPartHit("Head", PartWeaponType.Cut, dmg);
+        monster.ApplyUnbalance("Head", dmg);
 
         BroadcastMonsterHealth(monster);
         EchoDmg(client, req);

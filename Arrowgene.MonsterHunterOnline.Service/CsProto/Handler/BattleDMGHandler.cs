@@ -97,6 +97,11 @@ public class BattleDMGHandler : CsProtoStructureHandler<BattleDMG>
 
         Logger.Info(client, $"[705] apply dmg={dmg} {resolved} monsterNetId={monster.NetId} hp:{oldHp}->{newHp}/{monster.MaxHp}");
 
+        // v1 part-break: packet's int partId isn't yet mapped to the CSV part names, so route
+        // every hit to "Head" using a Cut weapon multiplier. Real weapon/part resolution comes
+        // once hashWeaponClass and req.partId decode are reverse-engineered.
+        monster.ApplyPartHit("Head", PartWeaponType.Cut, dmg);
+
         BroadcastMonsterHealth(monster);
         EchoDmg(client, req);
 

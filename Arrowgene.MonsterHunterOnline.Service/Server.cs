@@ -68,7 +68,9 @@ namespace Arrowgene.MonsterHunterOnline.Service
             AttackDataTable.LoadAll();
             MonsterDefinitionTable = new MonsterDefinitionTable(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\static_csv");
             MonsterDefinitionTable.LoadAll();
-            MonsterAI = new MonsterAIManager(ClientManager, SequenceManager, MonsterDefinitionTable);
+            PartsTable = new PartsTable(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\static_csv");
+            PartsTable.LoadAll();
+            MonsterAI = new MonsterAIManager(ClientManager, SequenceManager, MonsterDefinitionTable, PartsTable);
 
             _tpduConsumer.ClientConnected += ClientManager.Add;
             _tpduConsumer.ClientDisconnected += ClientManager.Remove;
@@ -89,6 +91,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
         public SequenceManager SequenceManager { get; }
         public AttackDataTable AttackDataTable { get; }
         public MonsterDefinitionTable MonsterDefinitionTable { get; }
+        public PartsTable PartsTable { get; }
         public MonsterAIManager MonsterAI { get; }
         private IDatabase CreateDatabase()
         {

@@ -20,14 +20,16 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private ClientManager _clientManager;
         private SequenceManager _sequenceManager;
         private MonsterDefinitionTable _monsterDefinitions;
+        private PartsTable _partsTable;
         private readonly Dictionary<uint, MonsterAI> _monsters = new();
         private readonly object _lock = new();
 
-        public MonsterAIManager(ClientManager clientManager, SequenceManager sequenceManager, MonsterDefinitionTable monsterDefinitions)
+        public MonsterAIManager(ClientManager clientManager, SequenceManager sequenceManager, MonsterDefinitionTable monsterDefinitions, PartsTable partsTable)
         {
             _clientManager = clientManager;
             _sequenceManager = sequenceManager;
             _monsterDefinitions = monsterDefinitions;
+            _partsTable = partsTable;
         }
 
         public uint NextNetId() => Interlocked.Increment(ref _nextNetId);
@@ -43,7 +45,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                 defName = def.EntityName;
             }
 
-            var monster = new MonsterAI(netId, renderNetId, monsterInfoId, position, this, _sequenceManager, maxHp);
+            var monster = new MonsterAI(netId, renderNetId, monsterInfoId, position, this, _sequenceManager, maxHp, _partsTable);
             lock (_lock)
             {
                 _monsters[netId] = monster;

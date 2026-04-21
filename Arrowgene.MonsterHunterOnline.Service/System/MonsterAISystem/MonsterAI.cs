@@ -28,6 +28,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private readonly MonsterAIManager _manager;
         private readonly SequenceManager _sequenceManager;
         private SequenceSet _sequenceSet;
+        private readonly PartBreakComponent _partBreak;
 
         private Timer _timer;
         private long _syncTime;
@@ -41,7 +42,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private float _sequenceStartYaw;
         private (float x, float y, float z) _sequenceLocalOrigin;
         
-        public MonsterAI(uint netId, uint renderNetId, int monsterInfoId, CSVec3 spawnPos, MonsterAIManager manager, SequenceManager sequenceManager, int maxHp)
+        public MonsterAI(uint netId, uint renderNetId, int monsterInfoId, CSVec3 spawnPos, MonsterAIManager manager, SequenceManager sequenceManager, int maxHp, PartsTable partsTable)
         {
             NetId = netId;
             RenderNetId = renderNetId;
@@ -56,7 +57,32 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             string refName = GetMonsterRefName(monsterInfoId);
             _sequenceSet = _sequenceManager?.GetOrLoad(refName);
 
+            _partBreak = new PartBreakComponent(monsterInfoId, partsTable);
+
             _timer = new Timer(Tick, null, TickMs, TickMs);
+        }
+
+        /// <summary>
+        /// Applies a part-targeted hit. Any break tiers crossed by this hit are broadcast
+        /// as <c>Hit_PartBroken_&lt;partId&gt;</c> sequences if the animation set defines them.
+        /// </summary>
+        public void ApplyPartHit(string partId, PartWeaponType weapon, float rawDamage)
+        {
+            if (_partBreak == null || string.IsNullOrEmpty(partId)) return;
+            var broken = _partBreak.ApplyHit(partId, weapon, rawDamage);
+            if (broken == null || broken.Count == 0) return;
+
+            string seqName = $"Hit_PartBroken_{partId}";
+            bool hasSeq = _sequenceSet != null && _sequenceSet.Sequences.ContainsKey(seqName);
+            foreach (var tier in broken)
+            {
+                Logger.Info($"Monster {NetId} part '{partId}' broke tier {tier.Tier} (DmgVal={tier.DmgVal}) seq={(hasSeq ? seqName : "<none>")}");
+                if (hasSeq)
+                {
+                    CSQuat rot = _sequenceStartRot ?? new CSQuat(1f, 0, 0, 0);
+                    BroadcastSequenceState(seqName, 0f, Position, rot);
+                }
+            }
         }
 
         private string GetMonsterRefName(int infoId)

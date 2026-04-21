@@ -42,6 +42,14 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             return monster;
         }
 
+        public bool TryGet(uint netId, out MonsterAI monster)
+        {
+            lock (_lock)
+            {
+                return _monsters.TryGetValue(netId, out monster);
+            }
+        }
+
         /// <summary>Stops the AI loop and removes the monster.</summary>
         public void Despawn(uint netId)
         {

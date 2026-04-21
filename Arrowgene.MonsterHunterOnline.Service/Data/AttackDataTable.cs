@@ -13,6 +13,8 @@ namespace Arrowgene.MonsterHunterOnline.Service.Data
 
         private readonly string _staticCsvDir;
         private readonly Dictionary<int, AttackData> _byId = new();
+        private readonly Dictionary<uint, int> _idByHashLower = new();
+        private readonly Dictionary<uint, int> _idByHashExact = new();
 
         public AttackDataTable(string staticCsvDir)
         {
@@ -27,7 +29,10 @@ namespace Arrowgene.MonsterHunterOnline.Service.Data
         public int LoadAll()
         {
             _byId.Clear();
+            _idByHashLower.Clear();
+            _idByHashExact.Clear();
             LoadFile(MonsterAttackDataFile);
+            BuildHashIndex();
             return _byId.Count;
         }
 
@@ -36,6 +41,31 @@ namespace Arrowgene.MonsterHunterOnline.Service.Data
         public AttackData Get(int id) => _byId.TryGetValue(id, out var d) ? d : null;
 
         public int GetDamage(int id) => _byId.TryGetValue(id, out var d) ? d.DamagePower : 0;
+
+        /// <summary>
+        /// Resolve a CryEngine-style name hash coming from the client (`BattleDMG.hashAttacker`)
+        /// to an AttackData ID. Tries lowercase-CRC32 first (CryEngine's CCrc32::ComputeLowercase
+        /// convention), falls back to raw-case CRC32 if the lowercase lookup misses.
+        /// </summary>
+        public bool TryGetIdByHash(uint hash, out int id)
+        {
+            if (_idByHashLower.TryGetValue(hash, out id)) return true;
+            if (_idByHashExact.TryGetValue(hash, out id)) return true;
+            return false;
+        }
+
+        private void BuildHashIndex()
+        {
+            foreach (var e in _byId.Values)
+            {
+                if (string.IsNullOrEmpty(e.AttackName)) continue;
+                uint lower = Crc32.ComputeLowercase(e.AttackName);
+                uint exact = Crc32.Compute(e.AttackName);
+                _idByHashLower[lower] = e.Id;
+                _idByHashExact[exact] = e.Id;
+            }
+            Logger.Info($"AttackData hash index built: {_idByHashLower.Count} lowercase, {_idByHashExact.Count} exact");
+        }
 
         private void LoadFile(string fileName)
         {

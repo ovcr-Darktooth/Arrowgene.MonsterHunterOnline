@@ -5,6 +5,7 @@ using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol;
 using Arrowgene.MonsterHunterOnline.Protocol.Constant;
+using Arrowgene.MonsterHunterOnline.Protocol.UnsafeTlvStructures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 using Arrowgene.MonsterHunterOnline.Service.System;
@@ -48,6 +49,17 @@ namespace Arrowgene.MonsterHunterOnline.Service
         public Account Account { get; set; }
         public Character Character { get; set; }
         public Inventory Inventory { get; set; }
+
+        /// <summary>
+        /// Authoritative attribute block mirrored to the client via PlayerInitInfo / AttrSync.
+        /// CharHP / CharMaxHP / Death are the HP state used by combat handlers.
+        /// </summary>
+        public TlvCharAttributes Attr { get; set; }
+
+        /// <summary>
+        /// Last knockdown/ragdoll state the client self-reported via CS_CMD_PLAYER_ABNORMAL_NTF.
+        /// </summary>
+        public CSPlayerAbnormalNtf LastAbnormal { get; set; }
 
         public TdpuCrypto GetTdpuCrypto()
         {

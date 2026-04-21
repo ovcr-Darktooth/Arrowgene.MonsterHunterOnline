@@ -121,6 +121,7 @@ public class InstanceVerifyReqHandler : CsProtoStructureHandler<InstanceVerifyRe
         }
 
         _characterManager.PopulatePlayerInitInfo(client, client.Character, playerInitInfo.Structure);
+        client.Attr = playerInitInfo.Structure.Attr;
         // Store spawn position for SpawnPlayer (CMD 516) in EnterLevelNtfHandler
         client.State.Position = new CSVec3()
         {

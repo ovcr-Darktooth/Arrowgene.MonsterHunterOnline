@@ -14,7 +14,7 @@ public class LoadEntityReqHandler : CsProtoStructureHandler<LoadEntityReq>
     private static readonly ServiceLogger Logger =
         LogProvider.Logger<ServiceLogger>(typeof(LoadEntityReqHandler));
 
-    private const int BattleMonsterInfoId = 60030;
+    private const int BattleMonsterInfoId = 60010;
 
     public override CS_CMD_ID Cmd => CS_CMD_ID.CS_CMD_LOAD_ENTITY_REQ;
 

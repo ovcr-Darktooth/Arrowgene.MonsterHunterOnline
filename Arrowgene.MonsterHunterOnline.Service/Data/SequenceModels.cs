@@ -88,6 +88,9 @@ namespace Arrowgene.MonsterHunterOnline.Service.Data
         public FloatTrack Z { get; set; } = new();
 
         public bool HasAny => X.Keys.Count > 0 || Y.Keys.Count > 0 || Z.Keys.Count > 0;
+
+        public (float x, float y, float z) Sample(float time) =>
+            (X.Evaluate(time), Y.Evaluate(time), Z.Evaluate(time));
     }
 
     public class FloatTrack

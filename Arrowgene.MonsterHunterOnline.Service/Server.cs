@@ -64,6 +64,8 @@ namespace Arrowgene.MonsterHunterOnline.Service
             ItemManager = new ItemManager(Database, Assets);
             SequenceManager = new SequenceManager(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\extracted\libs\sequencegroup");
             SequenceManager.LoadAll();
+            AttackDataTable = new AttackDataTable(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\static_csv");
+            AttackDataTable.LoadAll();
             MonsterAI = new MonsterAIManager(ClientManager, SequenceManager);
 
             _tpduConsumer.ClientConnected += ClientManager.Add;
@@ -83,6 +85,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
         public AssetRepository Assets { get; }
         public ItemManager ItemManager { get; }
         public SequenceManager SequenceManager { get; }
+        public AttackDataTable AttackDataTable { get; }
         public MonsterAIManager MonsterAI { get; }
         private IDatabase CreateDatabase()
         {

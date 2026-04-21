@@ -35,6 +35,9 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private SequenceData _currentSequence;
         private float _sequenceTime;
         private CSVec3 _sequenceStartPos;
+        private CSQuat _sequenceStartRot;
+        private float _sequenceStartYaw;
+        private (float x, float y, float z) _sequenceLocalOrigin;
         
         public MonsterAI(uint netId, uint renderNetId, int monsterInfoId, CSVec3 spawnPos, MonsterAIManager manager, SequenceManager sequenceManager)
         {
@@ -55,6 +58,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private string GetMonsterRefName(int infoId)
         {
             if (infoId == 60030) return "em003"; // Test Bulldrome
+            if (infoId == 60010) return "em001"; // Test Bulldrome
             if (infoId == 39004) return "em003";
             return "em001";
         }
@@ -75,7 +79,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                     if (_sequenceTime >= _currentSequence.TimeRange)
                     {
                         Logger.Debug($"Monster {NetId} finished sequence {_currentSequence.Name}");
-                        _currentSequence = null; 
+                        _currentSequence = null;
                     }
                     else
                     {
@@ -87,6 +91,30 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                                 Logger.Info($"Monster {NetId} HitEvent -> {hitEvent.Name} (Firemode:{hitEvent.Firemode}, AttackData:{hitEvent.AttackData})");
                             }
                         }
+
+                        // Root-motion: sample baked Position curves and advance authoritative transform.
+                        if (_currentSequence.Position.HasAny)
+                        {
+                            var local = _currentSequence.Position.Sample(_sequenceTime);
+                            float lx = local.x - _sequenceLocalOrigin.x;
+                            float ly = local.y - _sequenceLocalOrigin.y;
+                            float lz = local.z - _sequenceLocalOrigin.z;
+
+                            // Local frame: +Y forward, +X right (CryEngine). Yaw measured CCW from world +X.
+                            float c = MathF.Cos(_sequenceStartYaw);
+                            float s = MathF.Sin(_sequenceStartYaw);
+                            float wx = lx * s + ly * c;
+                            float wy = -lx * c + ly * s;
+
+                            var newPos = new CSVec3(
+                                _sequenceStartPos.x + wx,
+                                _sequenceStartPos.y + wy,
+                                _sequenceStartPos.z + lz);
+                            var velocity = ComputeVelocity(Position, newPos, TickMs / 1000f);
+                            Position = newPos;
+                            SendMovestate(newPos, _sequenceStartRot, velocity);
+                        }
+
                         return; // Lock behavior while animating
                     }
                 }
@@ -114,33 +142,37 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                 if (dist2D <= AttackRange)
                 {
                     State = MonsterAIState.Attack;
-                    
-                    // Same as PlayerState.cs: when attacking, lock position and send sequence info
+
                     CSQuat rot = LookAtQuat(Position, targetPos);
+                    float yawStart = MathF.Atan2(targetPos.y - Position.y, targetPos.x - Position.x);
                     CSVec3 zeroSpeed = new(0, 0, 0);
 
                     string attackSequence = "Head"; // Default fallback
                     if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Attack")) attackSequence = "Attack";
                     if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Head")) attackSequence = "Head";
+                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("DragonDash")) attackSequence = "DragonDash";
 
                     SendLocomotion(Position, rot, targetPos, zeroSpeed, attackSequence, 0, true, true);
                     SendMovestate(Position, rot, zeroSpeed);
                     BroadcastSequenceState(attackSequence, 0f, Position, rot);
 
-                    // Lock sequence
+                    // Lock sequence + capture start pose for root-motion replay
+                    _sequenceStartPos = CloneVec(Position);
+                    _sequenceStartRot = rot;
+                    _sequenceStartYaw = yawStart;
                     if (_sequenceSet != null && _sequenceSet.Sequences.TryGetValue(attackSequence, out var seq))
                     {
                         _currentSequence = seq;
                         _sequenceTime = 0f;
+                        _sequenceLocalOrigin = seq.Position.HasAny ? seq.Position.Sample(0f) : (0f, 0f, 0f);
                     }
                     else
                     {
                         // Fake sequence lock if no data (like PlayerState did with 1.63 seconds)
                         _currentSequence = new SequenceData { Name = attackSequence, TimeRange = 1.63f };
                         _sequenceTime = 0f;
+                        _sequenceLocalOrigin = (0f, 0f, 0f);
                     }
-
-                    // Optional cooldown can be simulated by adding extra TimeRange
                 }
                 else
                 {

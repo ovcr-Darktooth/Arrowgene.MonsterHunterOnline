@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using Arrowgene.MonsterHunterOnline.Service.Data;
@@ -48,6 +49,29 @@ public class SequenceManagerTest
             Assert.True(w.AttackData > 0, $"Window {w.Label} missing AttackData");
             Assert.Equal("DragonDash", w.Firemode);
         }
+    }
+
+    [Fact(Skip = "Local-only: requires extracted game files at a hardcoded path.")]
+    public void DragonDash_ShouldHaveForwardRootMotion()
+    {
+        var manager = new SequenceManager(SequencesDir);
+        var set = manager.GetOrLoad("em001");
+        Assert.NotNull(set);
+        Assert.True(set.Sequences.TryGetValue("DragonDash", out var seq));
+        Assert.True(seq.Position.HasAny, "DragonDash must have Position curves");
+
+        var p0 = seq.Position.Sample(0f);
+        var pMid = seq.Position.Sample(seq.TimeRange * 0.5f);
+        var pEnd = seq.Position.Sample(seq.TimeRange);
+
+        _out.WriteLine($"DragonDash position: t=0 ({p0.x:F3},{p0.y:F3},{p0.z:F3})  t=mid ({pMid.x:F3},{pMid.y:F3},{pMid.z:F3})  t=end ({pEnd.x:F3},{pEnd.y:F3},{pEnd.z:F3})");
+
+        // Cumulative 2D distance traveled in local frame must be > 0 (it's a dash)
+        float dx = pEnd.x - p0.x;
+        float dy = pEnd.y - p0.y;
+        float dist = MathF.Sqrt(dx * dx + dy * dy);
+        _out.WriteLine($"DragonDash net 2D displacement: {dist:F3} units");
+        Assert.True(dist > 0.5f, $"Expected substantial root-motion displacement, got {dist:F3}");
     }
 
     [Fact(Skip = "Local-only: requires extracted game files at a hardcoded path.")]

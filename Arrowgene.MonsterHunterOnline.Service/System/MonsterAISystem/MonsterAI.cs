@@ -32,7 +32,6 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private readonly StatusEffectComponent _status;
 
         private Timer _timer;
-        private long _syncTime;
         private bool _disposed;
 
         // Sequence State

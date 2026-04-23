@@ -1,8 +1,4 @@
 using System.Collections.Generic;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.ExtraStructures;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
-using Arrowgene.MonsterHunterOnline.Protocol;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 

@@ -7,8 +7,6 @@ using Microsoft.VisualBasic.FileIO;
 using System.Globalization;
 using System.IO;
 using System.Threading;
-using Arrowgene.MonsterHunterOnline.Protocol.Old;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 
 namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Handler;

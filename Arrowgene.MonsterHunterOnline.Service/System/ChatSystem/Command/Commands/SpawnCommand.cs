@@ -3,11 +3,8 @@ using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.ExtraStructures;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Constant;
-using Arrowgene.MonsterHunterOnline.Protocol;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Arrowgene.MonsterHunterOnline.Service.System.UnlockSystem;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.ExtraStructures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 

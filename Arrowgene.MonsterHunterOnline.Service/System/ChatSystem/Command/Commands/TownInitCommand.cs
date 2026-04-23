@@ -1,8 +1,5 @@
-﻿using Arrowgene.MonsterHunterOnline.Protocol.Old.ExtraStructures;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
+﻿using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Constant;
-using Arrowgene.MonsterHunterOnline.Protocol;
-using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
 using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Microsoft.VisualBasic.FileIO;
 using System.Collections.Generic;

@@ -16,7 +16,6 @@ public class TdpuCryptoAes128 : TdpuCrypto
 
 
     private readonly Aes _aes;
-    private TConnSecEnc _tConnSecEnc;
     private byte[] _key;
     private byte[] _iv;
 

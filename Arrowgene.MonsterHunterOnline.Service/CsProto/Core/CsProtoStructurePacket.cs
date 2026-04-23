@@ -31,7 +31,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Core
     public class CsCsProtoStructurePacket<TStructure> : CsCsProtoStructurePacket
         where TStructure : ICsStructure, new()
     {
-        public new TStructure Structure => (TStructure)_structure;
+        public TStructure Structure => (TStructure)_structure;
 
         public CsCsProtoStructurePacket(CS_CMD_ID cmd) : base(cmd, new TStructure())
         {

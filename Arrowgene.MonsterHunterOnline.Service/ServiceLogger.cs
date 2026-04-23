@@ -11,7 +11,6 @@ namespace Arrowgene.MonsterHunterOnline.Service
 {
     public class ServiceLogger : Logger
     {
-        private Setting _setting;
 
         private static List<CS_CMD_ID> _ignore = new List<CS_CMD_ID>()
         {

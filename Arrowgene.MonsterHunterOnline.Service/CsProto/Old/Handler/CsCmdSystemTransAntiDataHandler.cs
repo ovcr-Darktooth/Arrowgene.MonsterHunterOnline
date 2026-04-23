@@ -26,7 +26,5 @@ public class CsCmdSystemTransAntiDataHandler : ICsProtoHandler
         resp17.Body = new byte[1024];
         resp17.Cmd = CS_CMD_ID.CS_CMD_LOADLEVEL_NTF;
         //client.SendCsProto(resp17);
-
-        int sd = 1;
     }
 }

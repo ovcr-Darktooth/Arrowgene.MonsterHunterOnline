@@ -103,6 +103,15 @@ public class BattleDMGHandler : CsProtoStructureHandler<BattleDMG>
         monster.ApplyPartHit("Head", PartWeaponType.Cut, dmg);
         monster.ApplyUnbalance("Head", dmg);
 
+        // Phase 5.5 v2: whole-body fall + faint buildups. Fall direction uses the player's
+        // current position relative to the monster's facing (right side hit → fall Left).
+        // Faint is fed every hit until weapon-class → blunt/head gating is wired.
+        // Element buildup is plumbed in MonsterAI.ApplyElement but not fed here yet — needs
+        // player-weapon CSV data so we know each weapon's per-hit elemental amount.
+        CSVec3 attackerPos = client.State?.Position ?? client.State?.InitSpawnPos;
+        monster.ApplyFall(dmg, attackerPos);
+        monster.ApplyFaint(dmg);
+
         BroadcastMonsterHealth(monster);
         EchoDmg(client, req);
 

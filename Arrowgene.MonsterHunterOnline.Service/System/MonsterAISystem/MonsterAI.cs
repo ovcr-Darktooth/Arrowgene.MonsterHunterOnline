@@ -105,6 +105,102 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             }
         }
 
+        /// <summary>
+        /// Adds raw damage to the fall buildup. When the threshold is crossed, broadcasts
+        /// <c>Hit_FallDown_&lt;L|R&gt;_Start</c>; the L/R side is chosen so that the monster
+        /// falls away from the attacker (hit from monster's right → falls to its left,
+        /// exposing the right side — standard MH convention).
+        /// </summary>
+        /// <param name="hitFromPos">World position of the attacker; used to compute side.
+        /// Falls back to a deterministic default (Left) if null.</param>
+        public void ApplyFall(float rawDamage, CSVec3 hitFromPos)
+        {
+            if (_status == null) return;
+            if (!_status.ApplyFallHit(rawDamage)) return;
+
+            FallDirection dir = ComputeFallDirection(hitFromPos);
+            char side = dir == FallDirection.Left ? 'L' : 'R';
+            string startSeq = $"Hit_FallDown_{side}_Start";
+
+            bool hasSeq = _sequenceSet != null && _sequenceSet.Sequences.ContainsKey(startSeq);
+            Logger.Info($"Monster {NetId} fell ({dir}) — fall buildup #{_status.Fall.FallCount} seq={(hasSeq ? startSeq : "<none>")}");
+            if (hasSeq)
+            {
+                CSQuat rot = _sequenceStartRot ?? new CSQuat(1f, 0, 0, 0);
+                BroadcastSequenceState(startSeq, 0f, Position, rot);
+                // TODO Phase 7: chain Loop → End once the BT runtime owns sequence transitions.
+            }
+        }
+
+        /// <summary>
+        /// Adds raw damage to the faint buildup. When the threshold is crossed, broadcasts
+        /// the standalone <c>Stun</c> sequence (sustained faint, distinct from per-part stagger).
+        /// </summary>
+        public void ApplyFaint(float rawDamage)
+        {
+            if (_status == null) return;
+            if (!_status.ApplyFaintHit(rawDamage)) return;
+
+            const string seqName = "Stun";
+            bool hasSeq = _sequenceSet != null && _sequenceSet.Sequences.ContainsKey(seqName);
+            Logger.Info($"Monster {NetId} fainted — faint buildup #{_status.Faint.FaintCount} seq={(hasSeq ? seqName : "<none>")}");
+            if (hasSeq)
+            {
+                CSQuat rot = _sequenceStartRot ?? new CSQuat(1f, 0, 0, 0);
+                BroadcastSequenceState(seqName, 0f, Position, rot);
+            }
+        }
+
+        /// <summary>
+        /// Adds elemental buildup. When the per-element threshold is crossed, broadcasts the
+        /// matching <c>Abnormal_&lt;Element&gt;_Start</c> sequence. Element→sequence mapping
+        /// follows em001's animation set (Daze for Fire/Electric, Paralysis for Electric variant,
+        /// Sleep for Water, Flare for Dragon — placeholder until weapon→element data is wired).
+        /// </summary>
+        public void ApplyElement(HitElement element, float amount)
+        {
+            if (_status == null || element == HitElement.None) return;
+            if (!_status.ApplyElementHit(element, amount)) return;
+
+            string buffName = ElementToBuffName(element);
+            string startSeq = $"Abnormal_{buffName}_Start";
+
+            bool hasSeq = _sequenceSet != null && _sequenceSet.Sequences.ContainsKey(startSeq);
+            Logger.Info($"Monster {NetId} suffered abnormal {element} (buildup threshold crossed) seq={(hasSeq ? startSeq : "<none>")}");
+            if (hasSeq)
+            {
+                CSQuat rot = _sequenceStartRot ?? new CSQuat(1f, 0, 0, 0);
+                BroadcastSequenceState(startSeq, 0f, Position, rot);
+            }
+        }
+
+        private static string ElementToBuffName(HitElement element) => element switch
+        {
+            HitElement.Fire => "Flare",
+            HitElement.Water => "Sleep",
+            HitElement.Dragon => "Daze",
+            HitElement.Electric => "Paralysis",
+            HitElement.Ice => "Daze",
+            _ => "Daze",
+        };
+
+        /// <summary>
+        /// Decides which side the monster falls toward, based on attacker position relative to
+        /// monster facing (CryEngine: +Y forward, +X right; right-axis = (sin(yaw), -cos(yaw))).
+        /// Hit from monster's right → falls Left (exposing right side); else falls Right.
+        /// </summary>
+        private FallDirection ComputeFallDirection(CSVec3 hitFromPos)
+        {
+            if (hitFromPos == null) return FallDirection.Left;
+            float yaw = _sequenceStartYaw;
+            float rx = MathF.Sin(yaw);
+            float ry = -MathF.Cos(yaw);
+            float dx = hitFromPos.x - Position.x;
+            float dy = hitFromPos.y - Position.y;
+            float side = dx * rx + dy * ry;
+            return side > 0f ? FallDirection.Left : FallDirection.Right;
+        }
+
         private string GetMonsterRefName(int infoId)
         {
             if (infoId == 60030) return "em003"; // Test Bulldrome

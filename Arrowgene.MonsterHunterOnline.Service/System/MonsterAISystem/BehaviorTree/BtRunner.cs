@@ -49,6 +49,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
         public BtStatus Tick(float deltaSeconds)
         {
             _ctx.DeltaSeconds = deltaSeconds;
+            _ctx.TotalSeconds += deltaSeconds;
             return TickNode(_tree.Root);
         }
 

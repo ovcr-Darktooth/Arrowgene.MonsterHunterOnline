@@ -20,6 +20,13 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
         public object Owner { get; set; }
         public float DeltaSeconds { get; set; }
 
+        /// <summary>
+        /// Monotonic time accumulator advanced by the runner every tick. Used as the
+        /// reference clock for <c>SetTime</c> / <c>TimeCheck</c> / <c>DelayTime</c>
+        /// handlers — comparing absolute timestamps stored in the blackboard.
+        /// </summary>
+        public float TotalSeconds { get; set; }
+
         private readonly Dictionary<int, object> _nodeState = new();
 
         public BtContext(Blackboard blackboard, BtTreeLoader loader, BtHandlerRegistry handlers)

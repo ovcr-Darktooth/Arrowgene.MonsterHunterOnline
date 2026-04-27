@@ -310,7 +310,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                 var finish = new CSInstanceFinishRsp
                 {
                     ShowFlag = 1, // enter countdown flow
-                    CountDownSeconds = 60, // start a 60 seconds timer
+                    CountDownSeconds = 5, // start a 60 seconds timer
                     WinFlag = 1 // mark as win (1 = win)
                 };
                 _manager.BroadcastInstanceFinish(finish);

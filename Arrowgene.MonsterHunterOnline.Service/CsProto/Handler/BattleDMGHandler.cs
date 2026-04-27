@@ -37,7 +37,7 @@ public class BattleDMGHandler : CsProtoStructureHandler<BattleDMG>
 
     public override CS_CMD_ID Cmd => CS_CMD_ID.CS_CMD_BATTLE_DMG_VERIFY;
 
-    private const int FallbackDamage = 200;
+    private const int FallbackDamage = 1000;
 
     public override void Handle(Client client, BattleDMG req)
     {

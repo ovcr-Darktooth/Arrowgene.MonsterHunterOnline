@@ -142,6 +142,7 @@ namespace Arrowgene.MonsterHunterOnline.Service
             _csProtoPacketHandler.AddHandler(new BattleActorStopMoveHandler());
             _csProtoPacketHandler.AddHandler(new BattleDMGHandler(AttackDataTable, MonsterAI, ClientManager));
             _csProtoPacketHandler.AddHandler(new BattleDmgWithoutVerifyHandler(AttackDataTable, MonsterAI, ClientManager));
+            _csProtoPacketHandler.AddHandler(new BattleResultReqHandler(CharacterManager));
             _csProtoPacketHandler.AddHandler(new PlayerAbnormalNtfHandler(ClientManager));
             _csProtoPacketHandler.AddHandler(new ChangeAmmoReqHandler());
             _csProtoPacketHandler.AddHandler(new ChangeTownInstanceReqHandler());

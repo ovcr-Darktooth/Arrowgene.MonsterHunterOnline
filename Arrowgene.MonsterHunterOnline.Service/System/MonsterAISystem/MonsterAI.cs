@@ -37,6 +37,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
 
         private Timer _timer;
         private bool _disposed;
+        private int _tickGate; // 0 = idle, 1 = a tick is running. Interlocked-guarded.
 
         // Sequence State
         private SequenceData _currentSequence;
@@ -289,6 +290,11 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private void Tick(object _)
         {
             if (_disposed) return;
+            // Timer fires on the thread pool — if a previous tick is still running
+            // (BT logic + broadcasts can exceed TickMs under load), drop this one
+            // rather than letting two threads mutate _btRunner / BtContext._nodeState
+            // / sequence state in parallel. Better to skip a frame than corrupt state.
+            if (Interlocked.Exchange(ref _tickGate, 1) == 1) return;
 
             try
             {
@@ -304,6 +310,10 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             catch (Exception ex)
             {
                 Logger.Error($"Monster {NetId} tick error: {ex.Message}");
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _tickGate, 0);
             }
         }
 

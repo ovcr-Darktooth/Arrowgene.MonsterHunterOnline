@@ -422,6 +422,23 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             }
         }
 
+        /// <summary>
+        /// Snaps the monster's facing toward <paramref name="targetPos"/> and broadcasts
+        /// a Movestate so the client mirrors the new rotation. Updates
+        /// <see cref="_sequenceStartRot"/>/<see cref="_sequenceStartYaw"/> so any sequence
+        /// started later inherits the rotated heading. Used by the
+        /// <c>EntityRotateToTarget</c> BT handler — instant rotate (no smoothing yet).
+        /// </summary>
+        internal void RotateInstantTo(CSVec3 targetPos)
+        {
+            if (targetPos == null) return;
+            CSQuat rot = LookAtQuat(Position, targetPos);
+            float yaw = MathF.Atan2(targetPos.y - Position.y, targetPos.x - Position.x);
+            _sequenceStartRot = rot;
+            _sequenceStartYaw = yaw;
+            SendMovestate(Position, rot, new CSVec3(0, 0, 0));
+        }
+
         /// <summary>Advances the chase one tick toward the cached last target.</summary>
         internal void StepChaseTowardLastTarget()
         {

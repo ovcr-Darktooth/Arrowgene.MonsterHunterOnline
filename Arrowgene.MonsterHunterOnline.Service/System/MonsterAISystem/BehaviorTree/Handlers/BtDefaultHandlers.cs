@@ -22,6 +22,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
         public static void RegisterAll(BtHandlerRegistry registry)
         {
             RegisterCore(registry);
+            TargetingHandlers.RegisterAll(registry);
             RegisterStubs(registry);
         }
 
@@ -89,15 +90,15 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
             "CaculateDamagedValue",
             "CalculateLocalPointInWorld",
             "CallScriptFunc",
-            "CopyTargetPropertyToBB",
+            // CopyTargetPropertyToBB — Phase 6.6.3 (TargetingHandlers)
             "DropEntity",
             "EntityMove",
             "EntityMoveToPos",
-            "EntityMoveToTarget",
+            // EntityMoveToTarget — Phase 6.6.3 (TargetingHandlers)
             "EntityPlayAnimation",
             "EntityRotateOrientation",
             "EntityRotateToPos",
-            "EntityRotateToTarget",
+            // EntityRotateToTarget — Phase 6.6.3 (TargetingHandlers)
             "FindLogicPoint",
             "FmodMusicCues",
             "GetTargetPosByID",
@@ -117,7 +118,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
             "SetBlackBoardEqualString",
             "SetPathLength",
             "SetPathPointByIndex",
-            "SetTarget",
+            // SetTarget — Phase 6.6.3 (TargetingHandlers)
             "SetTargetIDOrientation",
             "SetTargetPosOrientation",
             "SpawnCollectTrig",

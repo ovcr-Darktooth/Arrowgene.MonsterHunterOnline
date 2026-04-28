@@ -185,6 +185,40 @@ public class BtHandlersTest
         Assert.Equal(BtStatus.Success, r.Tick(0.033f));
     }
 
+    [Fact]
+    public void TargetingHandlers_FailWhenOwnerIsNotMonsterAI()
+    {
+        // SetTarget / CopyTargetPropertyToBB / EntityRotateToTarget / EntityMoveToTarget
+        // all cast Owner to MonsterAI. With a FakeMonster (IBtMonsterAdapter) owner, they
+        // must return Failure rather than throwing — this is the safety contract.
+        var fake = new FakeMonster();
+        foreach (string xml in new[]
+                 {
+                     "<Node Type=\"Action\" Node_id=\"2\" Operation=\"SetTarget\" Value=\"45\"/>",
+                     "<Node Type=\"Action\" Node_id=\"2\" Operation=\"CopyTargetPropertyToBB\" PropertyName=\"Position\" TargetName=\"TargetPos\"/>",
+                     "<Node Type=\"Action\" Node_id=\"2\" Operation=\"EntityRotateToTarget\"/>",
+                     "<Node Type=\"Action\" Node_id=\"2\" Operation=\"EntityMoveToTarget\"/>",
+                 })
+        {
+            var (r, _, _) = BuildSyntheticRunner(xml, adapter: fake);
+            Assert.Equal(BtStatus.Failure, r.Tick(0.033f));
+        }
+    }
+
+    [Fact]
+    public void TargetingHandlers_AreRegisteredAndNotStubbed()
+    {
+        // Regression check: BtDefaultHandlers.RegisterAll must register the four
+        // Phase 6.6.3 handlers with their concrete classes, not the StubSuccessHandler.
+        var registry = new BtHandlerRegistry();
+        BtDefaultHandlers.RegisterAll(registry);
+
+        Assert.IsType<SetTargetHandler>(registry.GetAction("SetTarget"));
+        Assert.IsType<CopyTargetPropertyToBBHandler>(registry.GetAction("CopyTargetPropertyToBB"));
+        Assert.IsType<EntityRotateToTargetHandler>(registry.GetAction("EntityRotateToTarget"));
+        Assert.IsType<EntityMoveToTargetHandler>(registry.GetAction("EntityMoveToTarget"));
+    }
+
     [Fact(Skip = "Local-only: requires extracted, decrypted BT files at a hardcoded path.")]
     public void Em001Master_TicksWithFullDefaultHandlers_NoMissingOps()
     {

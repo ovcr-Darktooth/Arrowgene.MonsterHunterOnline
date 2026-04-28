@@ -22,6 +22,40 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
             registry.RegisterAction("CopyTargetPropertyToBB", new CopyTargetPropertyToBBHandler());
             registry.RegisterAction("EntityRotateToTarget", new EntityRotateToTargetHandler());
             registry.RegisterAction("EntityMoveToTarget", new EntityMoveToTargetHandler());
+            registry.RegisterCondition("DistanceCheck", new DistanceCheckHandler());
+        }
+    }
+
+    /// <summary>
+    /// <c>DistanceCheck OperationChar="&lt;" Value="6"</c> — true when the distance
+    /// to the current target compares to <c>Value</c> via OperationChar. Gates the
+    /// per-attack range branches in em001Attack* (Level*Long, Level*Short, etc.) —
+    /// without it, every range-gated attack returns Failure and the monster never
+    /// engages despite SetTarget succeeding.
+    /// </summary>
+    public sealed class DistanceCheckHandler : IBtHandler
+    {
+        public BtStatus Tick(BtNode node, BtContext ctx)
+        {
+            if (ctx.Owner is not MonsterAI mon) return BtStatus.Failure;
+            if (mon.LastTarget?.State?.Position == null) return BtStatus.Failure;
+
+            string opChar = node.GetAttr("OperationChar") ?? "<";
+            string raw = node.GetAttr("Value");
+            if (!float.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out float threshold))
+                return BtStatus.Failure;
+
+            float dist = mon.LastTargetDistance;
+            bool ok = opChar switch
+            {
+                "<" => dist < threshold,
+                "<=" => dist <= threshold,
+                ">" => dist > threshold,
+                ">=" => dist >= threshold,
+                "==" => global::System.Math.Abs(dist - threshold) < 1e-3f,
+                _ => false
+            };
+            return ok ? BtStatus.Success : BtStatus.Failure;
         }
     }
 

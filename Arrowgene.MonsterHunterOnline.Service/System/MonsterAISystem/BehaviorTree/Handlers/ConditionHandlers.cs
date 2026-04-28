@@ -131,7 +131,8 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
             string key = node.GetAttr("KeyName") ?? node.GetAttr("RecordTimeBBName");
             string opChar = node.GetAttr("OperationChar") ?? ">";
             string raw = node.GetAttr("Value");
-            if (string.IsNullOrEmpty(key)) return BtStatus.Failure;
+            // Empty key → implicit time slot shared with the matching SetTime in this sub-tree.
+            if (string.IsNullOrEmpty(key)) key = SetTimeHandler.ImplicitTimeKey;
             if (!float.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out float threshold))
                 return BtStatus.Failure;
 

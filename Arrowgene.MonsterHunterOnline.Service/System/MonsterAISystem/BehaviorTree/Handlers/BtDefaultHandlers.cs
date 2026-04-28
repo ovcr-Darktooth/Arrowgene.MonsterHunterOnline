@@ -74,7 +74,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
         private static readonly string[] StubConditions =
         {
             "BlackBoardCheckBBOPBB",
-            "DistanceCheck",
+            // DistanceCheck — Phase 6.6.5 (TargetingHandlers)
             "IsInTheAir",
         };
 

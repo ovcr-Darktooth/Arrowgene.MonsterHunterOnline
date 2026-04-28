@@ -27,10 +27,15 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
     /// </summary>
     public sealed class SetTimeHandler : IBtHandler
     {
+        // Implicit time slot used when SetTime / TimeCheck nodes carry no key attribute.
+        // em001rotatetoplayer pairs `<SetTime/>` with `<TimeCheck Value="1.5"/>` (both
+        // attribute-less); they're meant to share a per-sub-tree default slot.
+        internal const string ImplicitTimeKey = "__BtImplicitTime";
+
         public BtStatus Tick(BtNode node, BtContext ctx)
         {
             string key = node.GetAttr("RecordTimeBBName") ?? node.GetAttr("KeyName");
-            if (string.IsNullOrEmpty(key)) return BtStatus.Failure;
+            if (string.IsNullOrEmpty(key)) key = ImplicitTimeKey;
             ctx.Blackboard.Set(key, ctx.TotalSeconds);
             return BtStatus.Success;
         }

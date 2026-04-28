@@ -38,6 +38,11 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private Timer _timer;
         private bool _disposed;
         private int _tickGate; // 0 = idle, 1 = a tick is running. Interlocked-guarded.
+        private int _diagTickCounter;
+        private BtStatus _lastBtStatus = BtStatus.Failure;
+        private bool _traceFiredOnAggro;
+        // Last MoveType applied as a sequence — guards re-triggering the same sequence every tick.
+        private string _lastAppliedMoveType;
 
         // Sequence State
         private SequenceData _currentSequence;
@@ -252,10 +257,28 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         /// Attack tree from <see cref="MonsterAiFallbackBt"/>. Either path produces a runner
         /// using the same <see cref="_btBlackboard"/>, so HP/Dead sync stays unchanged.
         /// </summary>
+        /// <summary>
+        /// Master BT toggle. When false, BuildBtRunner skips the em*.xml master path and
+        /// uses the programmatic fallback BT (Idle/Chase/Attack). Default false until the
+        /// master BT's chain of stubs + BB-default-driven decisions actually engages
+        /// in-game — until then, master BT consistently returns Failure at the root and
+        /// the monster never attacks. Flip back to true once the master BT debug is done.
+        /// </summary>
+        public static bool UseMasterBt = true;
+
+        /// <summary>
+        /// Phase 6.6.5 debug helper: when true, the next BT tick prints a full indented
+        /// trace via <see cref="BtRunner.TickWithTrace"/>, then auto-resets to false. Used
+        /// to capture a single-tick snapshot of why the master BT root returns Failure.
+        /// Toggle to true at runtime (e.g. set via a slash-command or just flip on a fresh
+        /// spawn while debugging). One trace per toggle to avoid log flooding.
+        /// </summary>
+        public static bool TraceNextTick = false;
+
         private BtRunner BuildBtRunner(string refName)
         {
             BtTreeLoader loader = _manager?.BtLoader;
-            if (loader != null && !string.IsNullOrEmpty(refName))
+            if (UseMasterBt && loader != null && !string.IsNullOrEmpty(refName))
             {
                 string rel = Path.Combine(refName, refName + ".xml");
                 try
@@ -263,6 +286,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                     BtTree tree = loader.Resolve(rel, parent: null, out _);
                     if (tree != null)
                     {
+                        TryLoadBlackboardSchema(loader, refName);
                         BtHandlerRegistry registry = new BtHandlerRegistry();
                         BtDefaultHandlers.RegisterAll(registry);
                         BtContext ctx = new BtContext(_btBlackboard, loader, registry) { Owner = this };
@@ -277,6 +301,34 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             }
             Logger.Info($"Monster {NetId} using fallback BT (refName='{refName}')");
             return MonsterAiFallbackBt.BuildRunner(this, _btBlackboard);
+        }
+
+        /// <summary>
+        /// Phase 6.6.4 — looks for a per-monster blackboard schema XML in
+        /// <c>&lt;refName&gt;/monsterblackboard*_decrypted.xml</c> under the BT root and
+        /// loads it into <see cref="_btBlackboard"/>. Without this, every
+        /// <c>BlackBoardCheck</c> on a key the master tree expects (FindPlayer, OnHit,
+        /// NeedShow, State, …) sees a missing key, which the comparator treats as
+        /// Failure — so the BT walks but every meaningful branch bails out and the
+        /// monster sits in Idle.
+        /// </summary>
+        private void TryLoadBlackboardSchema(BtTreeLoader loader, string refName)
+        {
+            try
+            {
+                string monsterDir = Path.Combine(loader.RootDir, refName);
+                if (!Directory.Exists(monsterDir)) return;
+
+                string[] candidates = Directory.GetFiles(monsterDir, "monsterblackboard*_decrypted.xml");
+                if (candidates.Length == 0) return;
+
+                _btBlackboard.LoadFromFile(candidates[0]);
+                Logger.Info($"Monster {NetId} loaded BB schema '{Path.GetFileName(candidates[0])}'");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Monster {NetId} failed to load BB schema for '{refName}': {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -305,7 +357,41 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                 _lastTargetDist = dist;
 
                 SyncBlackboard();
-                _btRunner.Tick(TickMs / 1000f);
+
+                // Auto-trace on first aggro: when the player enters 50 units and we haven't
+                // dumped a trace yet for this monster, capture one full indented BT trace.
+                // One-shot per spawn — enough to see exactly which branch returns Failure.
+                bool wantTrace = TraceNextTick
+                                 || (!_traceFiredOnAggro && _lastTarget != null && _lastTargetDist <= 50f);
+
+                BtStatus rootStatus;
+                if (wantTrace)
+                {
+                    TraceNextTick = false;
+                    _traceFiredOnAggro = true;
+                    rootStatus = _btRunner.TickWithTrace(TickMs / 1000f, out string trace);
+                    Logger.Info($"Monster {NetId} BT TRACE (root={rootStatus}, dist={_lastTargetDist:F1}):\n{trace}");
+                }
+                else
+                {
+                    rootStatus = _btRunner.Tick(TickMs / 1000f);
+                }
+
+                ConsumeBbLocomotionIntents();
+
+                // Diagnostic: every 10 ticks (~2s) OR whenever the root status changes,
+                // log who's targeted and at what distance — quickest way to see why em001
+                // stays Idle (no target / out of sense radius / BT branch fails elsewhere).
+                _diagTickCounter++;
+                if (_diagTickCounter % 10 == 0 || rootStatus != _lastBtStatus)
+                {
+                    string targetTag = _lastTarget?.Identity ?? "<none>";
+                    string missing = _btRunner.MissingOperations.Count > 0
+                        ? string.Join(",", _btRunner.MissingOperations)
+                        : "-";
+                    Logger.Info($"Monster {NetId} BT root={rootStatus} target={targetTag} dist={_lastTargetDist:F1} state={State} missingOps=[{missing}]");
+                    _lastBtStatus = rootStatus;
+                }
             }
             catch (Exception ex)
             {
@@ -328,6 +414,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             {
                 Logger.Debug($"Monster {NetId} finished sequence {_currentSequence.Name}");
                 _currentSequence = null;
+                _lastAppliedMoveType = null; // allow BT to re-emit the same MoveType for a new round
                 return false;
             }
 
@@ -364,6 +451,40 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Phase 6.6.5 locomotion bridge — the master BT communicates movement intent
+        /// through BB flags rather than direct calls. After ticking, we read the BB and
+        /// turn intents into actual sequence playback / chase steps:
+        ///
+        /// <list type="bullet">
+        /// <item><c>MoveType</c> string set to a known sequence name (DragonDash, BeaverRoll,
+        /// RotateAttack, …) AND no sequence currently locked → start that sequence. Guarded
+        /// by <see cref="_lastAppliedMoveType"/> so we only fire on a change.</item>
+        /// <item>When the locked sequence ends, <see cref="_lastAppliedMoveType"/> is cleared
+        /// so the next BT-driven MoveType change can re-trigger.</item>
+        /// </list>
+        ///
+        /// In CryEngine the equivalent is the per-monster Locomotion sub-system that watches
+        /// the BB and routes to anim/movement systems. We don't model the full system; we
+        /// model just enough to make the BT-emitted intents observable.
+        /// </summary>
+        private void ConsumeBbLocomotionIntents()
+        {
+            if (_currentSequence != null) return; // sequence-lock owns the monster's body
+            if (_sequenceSet == null || _btBlackboard == null) return;
+
+            string moveType = _btBlackboard.GetString("MoveType");
+            if (string.IsNullOrEmpty(moveType)) return;
+            if (string.Equals(moveType, _lastAppliedMoveType, StringComparison.Ordinal)) return;
+            if (!_sequenceSet.Sequences.ContainsKey(moveType)) return; // not a sequence name we know
+
+            if (TryStartSequence(moveType))
+            {
+                _lastAppliedMoveType = moveType;
+                Logger.Info($"Monster {NetId} BT-driven sequence start: {moveType}");
+            }
         }
 
         /// <summary>Mirrors authoritative state into the BT blackboard at the start of each BT tick.</summary>

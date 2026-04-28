@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorTree
 {
@@ -34,6 +35,14 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
         private readonly BtContext _ctx;
         private readonly HashSet<string> _missingOps = new();
 
+        /// <summary>
+        /// When non-null, every node tick appends an indented "[depth] Kind:Name(Op) → Status"
+        /// line. The runner sets/clears it from <see cref="TickWithTrace"/>; one-shot per tick
+        /// to avoid log spam under the normal tick path.
+        /// </summary>
+        private StringBuilder _trace;
+        private int _traceDepth;
+
         public BtRunner(BtTree tree, BtContext ctx)
         {
             _tree = tree ?? throw new ArgumentNullException(nameof(tree));
@@ -53,7 +62,61 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
             return TickNode(_tree.Root);
         }
 
+        /// <summary>
+        /// One-shot debug tick that returns a full indented trace alongside the root status.
+        /// Use sparingly — the trace can be hundreds of lines on a deep BT. Kept separate from
+        /// <see cref="Tick"/> so the hot path stays branch-free.
+        /// </summary>
+        public BtStatus TickWithTrace(float deltaSeconds, out string trace)
+        {
+            _trace = new StringBuilder(4096);
+            _traceDepth = 0;
+            try
+            {
+                _ctx.DeltaSeconds = deltaSeconds;
+                _ctx.TotalSeconds += deltaSeconds;
+                BtStatus s = TickNode(_tree.Root);
+                trace = _trace.ToString();
+                return s;
+            }
+            finally
+            {
+                _trace = null;
+                _traceDepth = 0;
+            }
+        }
+
         private BtStatus TickNode(BtNode node)
+        {
+            if (_trace == null) return TickNodeInner(node);
+
+            int line = _trace.Length;
+            _trace.Append(' ', _traceDepth * 2);
+            string op = node switch
+            {
+                BtCondition c => c.Operation,
+                BtAction a => a.Operation,
+                BtReference r => r.Reference,
+                _ => null
+            };
+            _trace.Append(node.Kind);
+            if (!string.IsNullOrEmpty(node.Name)) _trace.Append(':').Append(node.Name);
+            if (!string.IsNullOrEmpty(op)) _trace.Append('(').Append(op).Append(')');
+            // Status appended after the recursive call (placeholder reservation by line index).
+            _trace.Append(" → ");
+            int statusAt = _trace.Length;
+            _trace.Append('\n');
+
+            _traceDepth++;
+            BtStatus s = TickNodeInner(node);
+            _traceDepth--;
+
+            // Splice the status string at the reserved location.
+            _trace.Insert(statusAt, s.ToString());
+            return s;
+        }
+
+        private BtStatus TickNodeInner(BtNode node)
         {
             switch (node)
             {
@@ -164,7 +227,20 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
                 return BtStatus.Running;
             }
 
-            // "Non" / null → pass-through grouping (no inversion in CE3 despite the name).
+            // "Non" → boolean NOT: invert child's Success/Failure. Running stays Running.
+            // CryEngine 3 uses this as a negation decorator: e.g.
+            //   IdleSeq Sequence: [Filter Non(IsInIdle), SetIdleState] = "if NOT in idle, set idle".
+            //   em001rotatetoplayer: Filter Non(TimeCheck>1.5) = "if NOT enough time passed".
+            // Without the inversion, every "is-currently-X → re-trigger" pattern in the master
+            // BT bails out and the tree never engages.
+            if (string.Equals(ft, "Non", StringComparison.Ordinal))
+            {
+                BtStatus s = TickAllChildrenAsSequence(filt);
+                if (s == BtStatus.Running) return BtStatus.Running;
+                return s == BtStatus.Success ? BtStatus.Failure : BtStatus.Success;
+            }
+
+            // null / unknown → pass-through grouping (no inversion).
             return TickAllChildrenAsSequence(filt);
         }
 

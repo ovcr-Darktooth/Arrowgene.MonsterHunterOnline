@@ -1,0 +1,89 @@
+<BlackBoard>
+    <Parent FileName="Templates\EmDragon_Fly\BB_Knowledge.xml"></Parent>
+    <Types>
+        <Type Name="ABC">
+            <content Name="AAA"></content>
+        </Type>
+    </Types>
+    <Vars>
+        <Var Name="DefaultSkillSpeed" Type="Float" Value="1"></Var>
+        <Var Name="Emotion_AngryEffectName" Type="String"
+            Value="Fire_Ability_Mst.BUF.AngerFire_em021"></Var>
+        <Var Name="Emotion_AngryEffectScaling" Type="Float" Value="0.5"></Var>
+        <Var Name="Emotion_AngryEffectOffset" Type="Vec3" Value="0.0,0.0,0.4"></Var>
+        <Var Name="CanAbnormal_Sonic" Type="Bool" Value="False"></Var>
+        <Var Name="InitShow" Type="Bool" Value="True"></Var>
+        <Var Name="C1" Type="Float" Value="150"></Var>
+        <Var Name="C2" Type="Float" Value="150"></Var>
+        <Var Name="C3" Type="Float" Value="10"></Var>
+        <Var Name="SendRainEvent" Type="Bool" Value="False"></Var>
+        <Var Name="InPool" Type="Bool" Value="False"></Var>
+        <Var Name="Emotion_AngryTime" Type="Float" Value="300"></Var>
+        <Var Name="AddBuffOFuck" Type="Bool" Value="False"></Var>
+        <Var Name="AddBuffOShit" Type="Bool" Value="False"></Var>
+        <Var Name="TailFire" Type="Bool" Value="False"></Var>
+        <Var Name="MoveSpeedByAnim" Type="Bool" Value="False"></Var>
+        <Var Name="AngryDamagePeakValue" Type="Float" Value="0.03"></Var>
+        <Var Name="AnimName_Dying_WalkLoop" Type="String" value="Lame"></Var>
+        <Var Name="SpawnAppear" Type="Bool" value="True"></Var>
+        <Var Name="NeedIdleTurn" Type="Bool" Value="True"></Var>
+        <Var Name="MoveSpeed_Fly" Type="Float" Value="12"></Var>
+        <Var Name="MoveSpeed_Glide" Type="Float" Value="8"></Var>
+        <Var Name="Stance" Type="String" Value="Walk"></Var>
+        <Var Name="CanFly" Type="Bool" Value="True"></Var>
+        <Var Name="CanLand" Type="Bool" Value="True"></Var>
+        <Var Name="RotationSpeed_Running" Type="Float" Value="120"></Var>
+        <Var Name="RotationSpeed_Slow" Type="Float" Value="180"></Var>
+        <Var Name="RotationSpeed_Medium" Type="Float" Value="210"></Var>
+        <Var Name="RotationSpeed_High" Type="Float" Value="260"></Var>
+        <Var Name="TargetFrontAngle" Type="Float" value="7.5"></Var>
+        <Var Name="SearchRange_Idle" Type="Int" Value="5"></Var>
+        <Var Name="SearchRange_Interested" Type="Int" Value="30"></Var>
+        <Var Name="SearchRange_Combat" Type="Int" Value="200"></Var>
+        <Var Name="MinEscapeHeight" Type="Float" Value="2"></Var>
+        <Var Name="MaxEscapeHeight" Type="Float" Value="5"></Var>
+        <Var Name="MinEscapeDist" Type="Float" Value="3"></Var>
+        <Var Name="MaxEscapeDist" Type="Float" Value="8"></Var>
+        <Var Name="RandomHeightMin" Type="Float" Value="1.5"></Var>
+        <Var Name="RandomRangeVer" Type="Float" Value="5.0"></Var>
+        <Var Name="RandomRangeHor" Type="Float" Value="8.0"></Var>
+        <Var Name="HitFlyValidate" Type="Bool" Value="False"></Var>
+        <Var Name="GoingDir" Type="String"></Var>
+        <Var Name="ScalarMove" Type="Bool" Value="False"></Var>
+        <Var Name="Target_VeryClose" Type="Bool"></Var>
+        <Var Name="Target_Close" Type="Bool"></Var>
+        <Var Name="Target_Medium" Type="Bool"></Var>
+        <Var Name="Target_MediumFar" Type="Bool"></Var>
+        <Var Name="Target_Far" Type="Bool"></Var>
+        <Var Name="Target_VeryFar" Type="Bool"></Var>
+        <Var Name="AirAttackCount" Type="Float" Value="0"></Var>
+        <Var Name="JumpSpeed" Type="Float"></Var>
+        <Var Name="JumpTime" Type="Float" Value="0.33"></Var>
+        <Var Name="Target_MediumFar" Type="Bool"></Var>
+        <Var Name="AttackPeriod" Type="Float" Value="0"></Var>
+        <Var Name="Emotion_AngryBuffID" Type="Int" Value="11039"></Var>
+        <Var Name="RandomHeight" Type="Bool" Value="False"></Var>
+        <Var Name="MaxSteerForce" Type="Float" Value="20"></Var>
+        <Var Name="Steer_StickDistance" Type="Float" Value="60"></Var>
+        <Var Name="Steer_WeightStick" Type="Float" Value="1"></Var>
+        <Var Name="Steer_WeightAround" Type="Float" Value="0.2"></Var>
+        <Var Name="MaxRotateSpeed" Type="Float" value="360"></Var>
+        <Var Name="FlyingAltitude" Type="Float" Value="10"></Var>
+        <Var Name="FacingMethod" Type="Int" Value="1"></Var>
+        <Var Name="Steer_WeightSteerToAltitude" Type="Float" Value="0.05"></Var>
+        <Var Name="Steer_RollByMove" Type="Bool" Value="True"></Var>
+        <Var Name="AirAttackNum" Type="Int" Value="1"></Var>
+        <Var Name="Head_PartBrokenEffectName" Type="String"
+            Value="Organic_Ability_Mst.HIT.BrokenHead_em009"></Var>
+        <Var Name="Leftwing_PartBrokenEffectName" Type="String"
+            Value="Organic_Ability_Mst.HIT.BrokenHead_em021"></Var>
+        <Var Name="Rightwing_PartBrokenEffectName" Type="String"
+            Value="Organic_Ability_Mst.HIT.BrokenHead_em021"></Var>
+        <Var Name="Leftwing_PartBrokenBoneName" Type="String" Value="AL03_Col_1"></Var>
+        <Var Name="Rightwing_PartBrokenBoneName" Type="String" Value="AR03_Col_1"></Var>
+        <Var Name="EatTime" Type="Float" Value="0"></Var>
+        <Var Name="TargetDistanceStop" Type="Float" Value="4.5"></Var>
+        <Var Name="HungryMeat" Type="Bool" Value="True"></Var>
+        <Var Name="Abnormal_Poo_EffectBuffID" Type="Int" Value="20000057"></Var>
+    </Vars>
+</BlackBoard>

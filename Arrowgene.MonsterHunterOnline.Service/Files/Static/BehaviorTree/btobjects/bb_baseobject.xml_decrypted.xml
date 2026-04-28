@@ -1,0 +1,58 @@
+<BlackBoard>
+	<Types>
+		<Type Name="ABC">
+			<content Name="AAA">
+			</content>
+		</Type>
+	</Types>
+	<Vars>
+		<Var Name="State" Type="String" Value="None">
+		</Var>
+		<Var Name="LastState" Type="String" Value="None">
+		</Var>
+		<Var Name="TargetPos" Type="Vec3">
+		</Var>
+		<Var Name="TargetID" Type="Uint32">
+		</Var>
+		<Var Name="EventName" Type="String">
+		</Var>
+		<Var Name="EventParam" Type="String">
+		</Var>
+		<Var Name="EnterEntityID" Type="Uint32">
+		</Var>
+		<Var Name="LeaveEntityID" Type="Uint32">
+		</Var>
+		<Var Name="AttackDir" Type="Vec3">
+		</Var>
+		<Var Name="IsPlayerAttack" Type="Bool">
+		</Var>
+		<Var Name="HitDamage" Type="Float">
+		</Var>
+		<Var Name="HitPoint" Type="Vec3">
+		</Var>
+		<Var Name="AttackerID" Type="Uint32">
+		</Var>
+		<Var Name="AttackAttr" Type="Int">
+		</Var>
+		<Var Name="RecordTime" Type="Float">
+		</Var>
+		<Var Name="Health" Type="Float" Value="100">
+		</Var>
+		<Var Name="ColliderID" Type="Uint32">
+		</Var>
+		<Var Name="BuffType" Type="String">
+		</Var>
+		<Var Name="TempBool" Type="Bool">
+		</Var>
+		<Var Name="TempFloat" Type="Float">
+		</Var>
+		<Var Name="TempVec" Type="Vec3">
+		</Var>
+		<Var Name="TempString" Type="String">
+		</Var>
+		<Var Name="TempInt" Type="Int">
+		</Var>
+		<Var Name="TempUint" Type="Uint32">
+		</Var>
+	</Vars>
+</BlackBoard>

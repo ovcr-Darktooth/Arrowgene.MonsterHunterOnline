@@ -1,0 +1,1 @@
+<Behavior Ver="1.5"><Node Name="Root_node" Type="Root" Node_id="1"><Connector Identifier="GenericChildren"><Node Name="Sequence0" Type="Sequence" Node_id="145"><Connector Identifier="GenericChildren"><Node Name="RotateToPlayer" Type="Action" Node_id="146" BTFunName="RotateToPlayer" Operation="BTCall"></Node></Connector></Node></Connector></Node></Behavior>

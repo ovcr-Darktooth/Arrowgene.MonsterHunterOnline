@@ -1,0 +1,1 @@
+<Behavior Ver="1.5"><Node Name="Root_Node" Type="Root" Node_id="1"><Connector Identifier="GenericChildren"><Node Name="Sequence1" Type="Sequence" Node_id="3"><Connector Identifier="GenericChildren"><Node Name="Reference1" Type="Reference" Node_id="4" Reference="..\Common_Mobs\LocomotionMove.xml"></Node></Connector></Node></Connector></Node></Behavior>

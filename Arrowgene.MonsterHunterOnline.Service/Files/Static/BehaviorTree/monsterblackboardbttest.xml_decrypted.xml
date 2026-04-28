@@ -1,0 +1,184 @@
+<BlackBoard>
+	<Vars>
+		<Var Name="AlwaysStartDirInMove" Type="Bool">
+		</Var>
+		<Var Name="AnimationSpeed" Type="Float">
+		</Var>
+		<Var Name="Angry" Type="Bool">
+		</Var>
+		<Var Name="AngryPeriod" Type="Float" Value="0">
+		</Var>
+		<Var Name="Area" Type="String">
+		</Var>
+		<Var Name="AttachMentName" Type="String">
+		</Var>
+		<Var Name="AttachToEntID" Type="Uint32">
+		</Var>
+		<Var Name="AttackDir" Type="Vec3">
+		</Var>
+		<Var Name="BeaverRoll" Type="Bool">
+		</Var>
+		<Var Name="BeAttacked" Type="Bool">
+		</Var>
+		<Var Name="BePickUped" Type="Bool">
+		</Var>
+		<Var Name="CanBePick" Type="Bool">
+		</Var>
+		<Var Name="CanRoll" Type="Bool">
+		</Var>
+		<Var Name="DamagedFromAir" Type="Bool">
+		</Var>
+		<Var Name="DefaultAnimName" Type="String">
+		</Var>
+		<Var Name="Dead" Type="Bool">
+		</Var>
+		<Var Name="Dive" Type="Bool">
+		</Var>
+		<Var Name="Dying" Type="Bool">
+		</Var>
+		<Var Name="DragonDash" Type="Bool">
+		</Var>
+		<Var Name="EatPeriod" Type="Float" Value="0">
+		</Var>
+		<Var Name="EatPoint" Type="Float">
+		</Var>
+		<Var Name="EnableAtkPlayer" Type="Bool">
+		</Var>
+		<Var Name="Environment" Type="String">
+		</Var>
+		<Var Name="EventFloat" Type="Float">
+		</Var>
+		<Var Name="EventInt" Type="Int">
+		</Var>
+		<Var Name="EventName" Type="String">
+		</Var>
+		<Var Name="EventParam" Type="String">
+		</Var>
+		<Var Name="EventString" Type="String">
+		</Var>
+		<Var Name="FindPlayer" Type="Bool">
+		</Var>
+		<Var Name="GeneralDamaged" Type="Bool">
+		</Var>
+		<Var Name="Health" Type="Float" Value="90">
+		</Var>
+		<Var Name="HitDamageHealth" Type="Float">
+		</Var>
+		<Var Name="HitDamagePeriod" Type="Float" Value="0">
+		</Var>
+		<Var Name="HitDamageTail" Type="Float" Value="10">
+		</Var>
+		<Var Name="HitPart" Type="String">
+		</Var>
+		<Var Name="Hungry" Type="Bool">
+		</Var>
+		<Var Name="InTrigger" Type="Bool">
+		</Var>
+		<Var Name="InTriggerID" Type="Uint32">
+		</Var>
+		<Var Name="InTriggerType" Type="String">
+		</Var>
+		<Var Name="IsFlying" Type="Bool">
+		</Var>
+		<Var Name="IsPlayerAttack" Type="Bool">
+		</Var>
+		<Var Name="LeftPick" Type="Bool">
+		</Var>
+		<Var Name="MoveSpeed" Type="Vec3">
+		</Var>
+		<Var Name="MoveToTarget" Type="String">
+		</Var>
+		<Var Name="Musou" Type="Bool">
+		</Var>
+		<Var Name="NeedEat" Type="Bool">
+		</Var>
+		<Var Name="NeedMove" Type="Bool">
+		</Var>
+		<Var Name="NeedMoveAnim" Type="Bool">
+		</Var>
+		<Var Name="NeedRotate" Type="Bool">
+		</Var>
+		<Var Name="NeedRotateAnim" Type="Bool">
+		</Var>
+		<Var Name="RecordTime" Type="Float">
+		</Var>
+		<Var Name="AttackPeriod" Type="Float" Value="0">
+		</Var>
+		<Var Name="RotateSpeed" Type="Vec3">
+		</Var>
+		<Var Name="RotateToTarget" Type="String">
+		</Var>
+		<Var Name="State" Type="String">
+		</Var>
+		<Var Name="TargetDistance" Type="Vec3">
+		</Var>
+		<Var Name="TargetID" Type="Uint32">
+		</Var>
+		<Var Name="TargetIndex" Type="Uint32" Value="0">
+		</Var>
+		<Var Name="TargetOrientation" Type="Vec3">
+		</Var>
+		<Var Name="TargetPath" Type="String">
+		</Var>
+		<Var Name="TargetPathLength" Type="Uint32">
+		</Var>
+		<Var Name="TargetPos" Type="Vec3">
+		</Var>
+		<Var Name="TargetSrvID" Type="Int">
+		</Var>
+		<Var Name="TreeAttachPoint" Type="Vec3">
+		</Var>
+		<Var Name="WeaponEvent" Type="Bool">
+		</Var>
+		<Var Name="NeedSwimAnim" Type="Bool">
+		</Var>
+		<Var Name="StateChangeType" Type="String">
+		</Var>
+		<Var Name="TempString" Type="String">
+		</Var>
+		<Var Name="TempInt" Type="Int">
+		</Var>
+		<Var Name="TempBool" Type="Bool">
+		</Var>
+		<Var Name="NeedEscape" Type="Bool" Value="True">
+		</Var>
+		<Var Name="EnterAreaTime" Type="Float">
+		</Var>
+		<Var Name="SkillSpeed" Type="Float" Value="1">
+		</Var>
+		<Var Name="TempFloat" Type="Float">
+		</Var>
+		<Var Name="MaxHealth" Type="Float" Value="1200">
+		</Var>
+		<Var Name="HeadDamageSum" Type="Float" Value="0">
+		</Var>
+		<Var Name="HeadDamageSum2" Type="Float" Value="0">
+		</Var>
+		<Var Name="HeadBroken" Type="Bool" Value="False">
+		</Var>
+		<Var Name="ToothBroken" Type="Bool" Value="False">
+		</Var>
+		<Var Name="LClawDamageSum" Type="Float" Value="0">
+		</Var>
+		<Var Name="LClawDamageSum2" Type="Float" Value="0">
+		</Var>
+		<Var Name="LClawBroken" Type="Bool" Value="False">
+		</Var>
+		<Var Name="RClawDamageSum" Type="Float" Value="0">
+		</Var>
+		<Var Name="RClawDamageSum2" Type="Float" Value="0">
+		</Var>
+		<Var Name="RClawBroken" Type="Bool" Value="False">
+		</Var>
+		<Var Name="CanDamage" Type="Bool">
+		</Var>
+		<Var Name="ChangePeriod" Type="Float" Value="0">
+		</Var>
+		<Var Name="SpawnWeaponID" Type="Uint32" Value="0">
+		</Var>
+		<Var Name="LeftHit" Type="Bool">
+		</Var>
+		<Var Name="Find" Type="Bool">
+		</Var>
+	</Vars>
+</BlackBoard>

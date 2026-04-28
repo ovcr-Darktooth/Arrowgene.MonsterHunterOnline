@@ -1,0 +1,24 @@
+<Behavior Ver="1.01">
+	<Node Name="Root_Node" Type="Root" Node_id="1">
+		<Connector Identifier="GenericChildren">
+			<Node Name="Sequence0" Type="Sequence" Node_id="2">
+				<Connector Identifier="GenericChildren">
+					<Node Name="SetTime" Type="Action" Node_id="6" Operation="SetTime" RecordTimeBBName="SendWindTimeRecord">
+					</Node>
+					<Node Name="UntilFail" Type="Filter" Node_id="51" Filter_Type="Until_Fails">
+						<Connector Identifier="GenericChildren">
+							<Node Name="Non" Type="Filter" Node_id="52" Filter_Type="Non" FilterType="Counter">
+								<Connector Identifier="GenericChildren">
+									<Node Name="TimeCheck" Type="Condition" Node_id="53" Operation="TimeCheck" RecordTimeBBName="SendWindTimeRecord" Value="80">
+									</Node>
+								</Connector>
+							</Node>
+						</Connector>
+					</Node>
+					<Node Name="SendEventToFG" Type="Action" Node_id="54" EventName="SenderToSandWind" Operation="SendEventToFG">
+					</Node>
+				</Connector>
+			</Node>
+		</Connector>
+	</Node>
+</Behavior>

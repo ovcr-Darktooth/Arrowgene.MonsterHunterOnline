@@ -1,0 +1,1 @@
+<Behavior Ver="1.01"><Node Name="Root_node" Type="Root" Node_id="1"><Connector Identifier="GenericChildren"><Node Name="Sequence0" Type="Sequence" Node_id="2"><Connector Identifier="GenericChildren"><Node Name="External" Type="Reference" Node_id="3" Reference="Em001ExternalSense.xml"></Node></Connector></Node></Connector></Node></Behavior>

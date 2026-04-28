@@ -1,0 +1,168 @@
+<BlackBoard>
+	<Types>
+		<Type Name="ABC">
+			<content Name="AAA">
+			</content>
+		</Type>
+	</Types>
+	<Vars>
+		<Var Name="TargetPos" Type="Vec3">
+		</Var>
+		<Var Name="State" Type="String">
+		</Var>
+		<Var Name="EventName" Type="String">
+		</Var>
+		<Var Name="MoveSpeed" Type="Vec3">
+		</Var>
+		<Var Name="TargetDistance" Type="Vec3">
+		</Var>
+		<Var Name="AnimationSpeed" Type="Float">
+		</Var>
+		<Var Name="TargetOrientation" Type="Vec3">
+		</Var>
+		<Var Name="RotateSpeed" Type="Vec3">
+		</Var>
+		<Var Name="NeedMove" Type="Bool">
+		</Var>
+		<Var Name="NeedRotate" Type="Bool">
+		</Var>
+		<Var Name="Environment" Type="String">
+		</Var>
+		<Var Name="DefaultAnimName" Type="String">
+		</Var>
+		<Var Name="RecordTime" Type="Float">
+		</Var>
+		<Var Name="NeedRotateAnim" Type="Bool">
+		</Var>
+		<Var Name="AlwaysStartDirInMove" Type="Bool">
+		</Var>
+		<Var Name="NeedMoveAnim" Type="Bool">
+		</Var>
+		<Var Name="TargetID" Type="Uint32">
+		</Var>
+		<Var Name="TargetSrvID" Type="Int">
+		</Var>
+		<Var Name="MoveToTarget" Type="String">
+		</Var>
+		<Var Name="RotateToTarget" Type="String">
+		</Var>
+		<Var Name="HitPart" Type="String">
+		</Var>
+		<Var Name="HitDamageHealth" Type="Float">
+		</Var>
+		<Var Name="HitDamagePeriodBody" Type="Float" Value="0">
+		</Var>
+		<Var Name="HitDamagePeriodLeftWing" Type="Float" Value="0">
+		</Var>
+		<Var Name="HitDamagePeriodRightWing" Type="Float" Value="0">
+		</Var>
+		<Var Name="HitDamagePeriodHead" Type="Float" Value="0">
+		</Var>
+		<Var Name="HitDamagePeriodTail" Type="Float" Value="0">
+		</Var>
+		<Var Name="HitDamagePeriodLeftLeg" Type="Float" Value="0">
+		</Var>
+		<Var Name="HitDamagePeriodRightLeg" Type="Float" Value="0">
+		</Var>
+		<Var Name="UnbalanceHead" Type="Bool">
+		</Var>
+		<Var Name="UnbalanceWing" Type="Bool">
+		</Var>
+		<Var Name="UnbalanceTail" Type="Bool">
+		</Var>
+		<Var Name="UnbalanceLeg" Type="Bool">
+		</Var>
+		<Var Name="UnbalanceBody" Type="Bool">
+		</Var>
+		<Var Name="UnbalanceHeadValue" Type="Float" Value="80">
+		</Var>
+		<Var Name="UnbalanceWingValue" Type="Float" Value="80">
+		</Var>
+		<Var Name="UnbalanceTailValue" Type="Float" Value="1000">
+		</Var>
+		<Var Name="UnbalanceLegValue" Type="Float" Value="80">
+		</Var>
+		<Var Name="UnbalanceBodyValue" Type="Float" Value="100">
+		</Var>
+		<Var Name="HitDamagePeriodFallLeftLeg" Type="Float" Value="0">
+		</Var>
+		<Var Name="HitDamagePeriodFallRightLeg" Type="Float" Value="0">
+		</Var>
+		<Var Name="FallLeftLeg" Type="Bool">
+		</Var>
+		<Var Name="FallRightLeg" Type="Bool">
+		</Var>
+		<Var Name="FallLegValue" Type="Float" Value="100">
+		</Var>
+		<Var Name="HitDamageTail" Type="Float" Value="100">
+		</Var>
+		<Var Name="HitDamageLeftWing" Type="Float" Value="240">
+		</Var>
+		<Var Name="HitDamageRigthtWing" Type="Float" Value="240">
+		</Var>
+		<Var Name="HitDamageHead" Type="Float" Value="240">
+		</Var>
+		<Var Name="MaxHealth" Type="Float" Value="1800">
+		</Var>
+		<Var Name="Health" Type="Float" Value="1800">
+		</Var>
+		<Var Name="TargetPath" Type="String">
+		</Var>
+		<Var Name="TargetPathLength" Type="Uint32">
+		</Var>
+		<Var Name="Area" Type="String">
+		</Var>
+		<Var Name="TargetIndex" Type="Uint32" Value="0">
+		</Var>
+		<Var Name="TempString" Type="String">
+		</Var>
+		<Var Name="Flaring" Type="Bool">
+		</Var>
+		<Var Name="FlareStart" Type="Bool">
+		</Var>
+		<Var Name="GeneralDamaged" Type="Bool">
+		</Var>
+		<Var Name="DamagedFromAir" Type="Bool">
+		</Var>
+		<Var Name="TailBroken" Type="Bool">
+		</Var>
+		<Var Name="Dead" Type="Bool">
+		</Var>
+		<Var Name="FlareTime" Type="Float">
+		</Var>
+		<Var Name="Angry" Type="Bool">
+		</Var>
+		<Var Name="TempFloat" Type="Float">
+		</Var>
+		<Var Name="SkillSpeed" Type="Float">
+		</Var>
+		<Var Name="RevivalTime" Type="Int" Value="120">
+		</Var>
+		<Var Name="Fly" Type="Bool">
+		</Var>
+		<Var Name="Lame" Type="Bool">
+		</Var>
+		<Var Name="EscapeFinish" Type="Bool">
+		</Var>
+		<Var Name="Sleep" Type="Bool">
+		</Var>
+		<Var Name="Traped" Type="Bool">
+		</Var>
+		<Var Name="TrapedEnd" Type="Bool">
+		</Var>
+		<Var Name="TrapedTime" Type="Float">
+		</Var>
+		<Var Name="TargetArea" Type="String">
+		</Var>
+		<Var Name="InitShow" Type="Bool" Value="True">
+		</Var>
+		<Var Name="TempBool" Type="Bool">
+		</Var>
+		<Var Name="RotateSpeedByAnim" Type="Bool">
+		</Var>
+		<Var Name="TestCmd" Type="Uint32">
+		</Var>
+		<Var Name="SendRainEvent" Type="Bool" Value="False">
+		</Var>
+	</Vars>
+</BlackBoard>

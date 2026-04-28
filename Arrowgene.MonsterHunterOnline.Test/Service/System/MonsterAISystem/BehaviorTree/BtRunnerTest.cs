@@ -7,8 +7,8 @@ namespace Arrowgene.MonsterHunterOnline.Test.Service.System.MonsterAISystem.Beha
 
 public class BtRunnerTest
 {
-    private const string BtRootDir =
-        @"O:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\extracted\scripts\ai\behaviortree\em001";
+    private static readonly string BtRootDir =
+        Path.Combine(AppContext.BaseDirectory, "Files", "Static", "BehaviorTree", "em001");
 
     private readonly ITestOutputHelper _out;
 
@@ -17,7 +17,7 @@ public class BtRunnerTest
         _out = output;
     }
 
-    [Fact(Skip = "Local-only: requires extracted, decrypted BT files at a hardcoded path.")]
+    [Fact]
     public void Blackboard_LoadFromEm001Schema_ParsesTypedDefaults()
     {
         var bb = new Blackboard();
@@ -47,7 +47,7 @@ public class BtRunnerTest
         Assert.Equal("Idle", bb.GetAsString("State"));
     }
 
-    [Fact(Skip = "Local-only: requires extracted, decrypted BT files at a hardcoded path.")]
+    [Fact]
     public void Runner_TicksEm001Master_FailsCleanlyWithoutHandlers()
     {
         // With no handlers registered every Action/Condition returns Failure, so the

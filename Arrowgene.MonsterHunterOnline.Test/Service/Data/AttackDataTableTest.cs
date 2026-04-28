@@ -7,7 +7,7 @@ namespace Arrowgene.MonsterHunterOnline.Test.Service.Data;
 
 public class AttackDataTableTest
 {
-    private const string StaticCsvDir = @"O:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\static_csv";
+    private static readonly string StaticCsvDir = Path.Combine(AppContext.BaseDirectory, "Files", "Static");
 
     private readonly ITestOutputHelper _out;
 
@@ -16,7 +16,7 @@ public class AttackDataTableTest
         _out = output;
     }
 
-    [Fact(Skip = "Local-only: requires extracted game CSVs at a hardcoded path.")]
+    [Fact]
     public void LoadAll_ShouldPopulateTable()
     {
         Assert.True(Directory.Exists(StaticCsvDir), $"Expected directory missing: {StaticCsvDir}");
@@ -28,7 +28,7 @@ public class AttackDataTableTest
         Assert.True(count > 100, $"Expected many entries, got {count}");
     }
 
-    [Fact(Skip = "Local-only: requires extracted game CSVs at a hardcoded path.")]
+    [Fact]
     public void DragonDash_em001_ShouldHaveExpectedDamage()
     {
         var table = new AttackDataTable(StaticCsvDir);
@@ -49,7 +49,7 @@ public class AttackDataTableTest
         Assert.Equal(10, table.GetDamage(20269));
     }
 
-    [Fact(Skip = "Local-only: requires extracted game CSVs at a hardcoded path.")]
+    [Fact]
     public void GetDamage_UnknownId_ReturnsZero()
     {
         var table = new AttackDataTable(StaticCsvDir);

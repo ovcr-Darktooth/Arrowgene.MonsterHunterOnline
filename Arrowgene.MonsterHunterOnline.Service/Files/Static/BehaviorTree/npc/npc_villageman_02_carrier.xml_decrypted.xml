@@ -1,0 +1,54 @@
+<Behavior Ver="1.5">
+	<Node Name="Root_node" Type="Root" Node_id="1">
+		<Connector Identifier="GenericChildren">
+			<Node Name="Sequence3" Type="Sequence" Node_id="166">
+				<Connector Identifier="GenericChildren">
+					<Node Name="Sequence0" Type="Sequence" Node_id="3">
+						<Connector Identifier="GenericChildren">
+							<Node Name="SetPath" Type="Action" Node_id="10" KeyName="TargetPath" Operation="SetBlackBoard" Value="AIPath_Carrier_01">
+							</Node>
+							<Node Name="SetPathLength" Type="Action" Node_id="9" Operation="SetPathLength">
+							</Node>
+							<Node Name="NPCPathMoveWalk" Type="Reference" Node_id="59" Reference=".\NPCPathMoveWalk.xml">
+							</Node>
+							<Node Name="Sequence1" Type="Sequence" Node_id="178">
+								<Connector Identifier="GenericChildren">
+									<Node Name="PutDownBox" Type="Action" Node_id="179" AnimSequence="Maneuver_Carry_PutDown" Operation="AnimSequencePlay">
+									</Node>
+								</Connector>
+							</Node>
+							<Node Name="Reference2" Type="Reference" Node_id="286" Reference=".\NPCResetLocomotion.xml">
+							</Node>
+						</Connector>
+					</Node>
+					<Node Name="Sequence0" Type="Sequence" Node_id="174">
+						<Connector Identifier="GenericChildren">
+							<Node Name="SetPath" Type="Action" Node_id="175" KeyName="TargetPath" Operation="SetBlackBoard" Value="AIPath_Carrier_02">
+							</Node>
+							<Node Name="SetPathLength" Type="Action" Node_id="176" Operation="SetPathLength">
+							</Node>
+							<Node Name="NPCPathMoveWalk" Type="Reference" Node_id="177" Reference=".\NPCPathMoveWalk.xml">
+							</Node>
+							<Node Name="Sequence1" Type="Sequence" Node_id="180">
+								<Connector Identifier="GenericChildren">
+									<Node Name="PutUpBox" Type="Action" Node_id="181" AnimSequence="Maneuver_Jump_Carry_LandBreak" Operation="AnimSequencePlay">
+									</Node>
+								</Connector>
+							</Node>
+							<Node Name="Reference2" Type="Reference" Node_id="287" Reference=".\NPCResetLocomotion.xml">
+							</Node>
+						</Connector>
+					</Node>
+				</Connector>
+			</Node>
+		</Connector>
+	</Node>
+	<OverrideNode SrcNodeRTPath="NPC\NPC_villageman_02_carrier.xml : 59 |NPC\NPCPathMoveWalk.xml : 8 |NPC\NPCMoveWalkToPos.xml : 7" SrcNodeType="Action" IsSubTree="0" Index="0" DependIndex="-1">
+		<Node Name="SetSpeed" Type="Action" Node_id="205" KeyName="MoveSpeed" Operation="SetBlackBoard" Value1="0" Value2="1.35" Value3="0">
+		</Node>
+	</OverrideNode>
+	<OverrideNode SrcNodeRTPath="NPC\NPC_villageman_02_carrier.xml : 177 |NPC\NPCPathMoveWalk.xml : 8 |NPC\NPCMoveWalkToPos.xml : 8" SrcNodeType="Action" IsSubTree="0" Index="1" DependIndex="-1">
+		<Node Name="SetMoveType" Type="Action" Node_id="229" KeyName="MoveType" Operation="SetBlackBoard" Value="Run">
+		</Node>
+	</OverrideNode>
+</Behavior>

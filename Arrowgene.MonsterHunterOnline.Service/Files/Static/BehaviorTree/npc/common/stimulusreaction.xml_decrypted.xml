@@ -1,0 +1,16 @@
+<Behavior Ver="1.5">
+	<Node Name="Root_Node" Type="Root" Node_id="1">
+		<Connector Identifier="GenericChildren">
+			<Node Name="Sequence1" Type="Sequence" Node_id="3">
+				<Connector Identifier="GenericChildren">
+					<Node Name="Reference1" Type="Reference" Node_id="4" Reference="..\..\CN001\Stimulus\Deciders\Respond_UI_Events.xml">
+					</Node>
+				</Connector>
+			</Node>
+		</Connector>
+	</Node>
+	<OverrideNode SrcNodeRTPath="NPC\Common\StimulusReaction.xml : 4 |CN001\Stimulus\Deciders\Respond_UI_Events.xml : 10 |CN001\Stimulus\Deciders\Decider_Stimulus_UI_Events.xml : 104 |Common_Pet\Prototype03\Behaviors\Action\Behavior_FG_PlaySequence.xml : 225" SrcNodeType="Action" IsSubTree="0" Index="0" DependIndex="-1">
+		<Node Name="PlaySequence" Type="Action" Node_id="54" AnimSequence="BB.NpcAnimationName2" Operation="AnimSequencePlay">
+		</Node>
+	</OverrideNode>
+</Behavior>

@@ -1,0 +1,12 @@
+<Behavior Ver="1.01">
+    <Node Name="Root_Node" Type="Root" Node_id="1">
+        <Connector Identifier="GenericChildren">
+            <Node Name="Node_SetTargetFactionPlayers" Type="Sequence" Node_id="3">
+                <Connector Identifier="GenericChildren">
+                    <Node Name="SetTargetFactionPlayers" Type="Action" Node_id="4"
+                        KeyName="TargetFaction" Operation="SetBlackBoard" Value="0"></Node>
+                </Connector>
+            </Node>
+        </Connector>
+    </Node>
+</Behavior>

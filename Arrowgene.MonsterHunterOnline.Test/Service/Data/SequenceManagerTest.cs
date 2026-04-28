@@ -9,7 +9,7 @@ namespace Arrowgene.MonsterHunterOnline.Test.Service.Data;
 
 public class SequenceManagerTest
 {
-    private const string SequencesDir = @"O:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\extracted\libs\sequencegroup";
+    private static readonly string SequencesDir = Path.Combine(AppContext.BaseDirectory, "Files", "Static", "Sequences");
     private const string DiagnosticsDir = @"O:\jeux-backup\MONSTER HUNTER ONLINE\rapports-claude\sequence_catalog";
 
     private readonly ITestOutputHelper _out;
@@ -19,7 +19,7 @@ public class SequenceManagerTest
         _out = output;
     }
 
-    [Fact(Skip = "Local-only: requires extracted game files at a hardcoded path.")]
+    [Fact]
     public void LoadAll_ShouldParseEveryFileWithoutError()
     {
         Assert.True(Directory.Exists(SequencesDir), $"Expected directory missing: {SequencesDir}");
@@ -32,7 +32,7 @@ public class SequenceManagerTest
         Assert.True(loaded > 0);
     }
 
-    [Fact(Skip = "Local-only: requires extracted game files at a hardcoded path.")]
+    [Fact]
     public void DragonDash_ShouldHavePairedHitColWindows()
     {
         var manager = new SequenceManager(SequencesDir);
@@ -51,7 +51,7 @@ public class SequenceManagerTest
         }
     }
 
-    [Fact(Skip = "Local-only: requires extracted game files at a hardcoded path.")]
+    [Fact]
     public void DragonDash_ShouldHaveForwardRootMotion()
     {
         var manager = new SequenceManager(SequencesDir);
@@ -93,7 +93,7 @@ public class SequenceManagerTest
         }
     }
 
-    [Fact(Skip = "Local-only: requires extracted game files at a hardcoded path.")]
+    [Fact]
     public void Em008_ShouldHaveLemonVariants()
     {
         var manager = new SequenceManager(SequencesDir);

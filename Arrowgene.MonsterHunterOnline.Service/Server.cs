@@ -62,17 +62,18 @@ namespace Arrowgene.MonsterHunterOnline.Service
             CharacterManager = new CharacterManager(Database);
             Chat = new ChatManager(ClientManager);
             ItemManager = new ItemManager(Database, Assets);
-            SequenceManager = new SequenceManager(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\extracted\libs\sequencegroup");
+            string staticDir = Path.Combine(Util.ExecutingDirectory(), "Files", "Static");
+            SequenceManager = new SequenceManager(Path.Combine(staticDir, "Sequences"));
             SequenceManager.LoadAll();
-            AttackDataTable = new AttackDataTable(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\static_csv");
+            AttackDataTable = new AttackDataTable(staticDir);
             AttackDataTable.LoadAll();
-            MonsterDefinitionTable = new MonsterDefinitionTable(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\static_csv");
+            MonsterDefinitionTable = new MonsterDefinitionTable(staticDir);
             MonsterDefinitionTable.LoadAll();
-            PartsTable = new PartsTable(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\static_csv");
+            PartsTable = new PartsTable(staticDir);
             PartsTable.LoadAll();
-            MonsterAssetTable = new MonsterAssetTable(@"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL");
+            MonsterAssetTable = new MonsterAssetTable(staticDir);
             MonsterAssetTable.LoadAll();
-            MonsterAI = new MonsterAIManager(ClientManager, SequenceManager, MonsterDefinitionTable, PartsTable, MonsterAssetTable, @"o:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\extracted\scripts\ai\behaviortree");
+            MonsterAI = new MonsterAIManager(ClientManager, SequenceManager, MonsterDefinitionTable, PartsTable, MonsterAssetTable, Path.Combine(staticDir, "BehaviorTree"));
 
             _tpduConsumer.ClientConnected += ClientManager.Add;
             _tpduConsumer.ClientDisconnected += ClientManager.Remove;

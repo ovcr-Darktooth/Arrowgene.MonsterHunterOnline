@@ -8,7 +8,7 @@ namespace Arrowgene.MonsterHunterOnline.Test.Service.Data;
 
 public class PartsTableTest
 {
-    private const string StaticCsvDir = @"O:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\static_csv";
+    private static readonly string StaticCsvDir = Path.Combine(AppContext.BaseDirectory, "Files", "Static");
 
     private readonly ITestOutputHelper _out;
 
@@ -17,7 +17,7 @@ public class PartsTableTest
         _out = output;
     }
 
-    [Fact(Skip = "Local-only: requires extracted game CSVs at a hardcoded path.")]
+    [Fact]
     public void LoadAll_PopulatesTable()
     {
         Assert.True(Directory.Exists(StaticCsvDir), $"Expected directory missing: {StaticCsvDir}");
@@ -30,7 +30,7 @@ public class PartsTableTest
         Assert.True(table.DefenceCount > 1000, $"Expected many PartDefence rows, got {table.DefenceCount}");
     }
 
-    [Fact(Skip = "Local-only: requires extracted game CSVs at a hardcoded path.")]
+    [Fact]
     public void Em001_Has_ExpectedParts()
     {
         var table = new PartsTable(StaticCsvDir);
@@ -49,7 +49,7 @@ public class PartsTableTest
         _out.WriteLine("em001 parts: " + string.Join(", ", em001Parts.Keys));
     }
 
-    [Fact(Skip = "Local-only: requires extracted game CSVs at a hardcoded path.")]
+    [Fact]
     public void Em001_Head_BreakTiers_Match_CSV()
     {
         var table = new PartsTable(StaticCsvDir);
@@ -69,7 +69,7 @@ public class PartsTableTest
         _out.WriteLine($"Head tiers: {string.Join(", ", tiers.Select(t => $"t{t.Tier}={t.DmgVal}"))}");
     }
 
-    [Fact(Skip = "Local-only: requires extracted game CSVs at a hardcoded path.")]
+    [Fact]
     public void Em001_Head_Defence_MatchesCsv()
     {
         var table = new PartsTable(StaticCsvDir);

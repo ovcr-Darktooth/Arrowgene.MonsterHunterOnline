@@ -8,8 +8,8 @@ namespace Arrowgene.MonsterHunterOnline.Test.Service.System.MonsterAISystem.Beha
 
 public class BtParserTest
 {
-    private const string BtRootDir =
-        @"O:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\extracted\scripts\ai\behaviortree\em001";
+    private static readonly string BtRootDir =
+        Path.Combine(AppContext.BaseDirectory, "Files", "Static", "BehaviorTree", "em001");
 
     private const string Em001Master = "em001.xml_decrypted.xml";
 
@@ -20,7 +20,7 @@ public class BtParserTest
         _out = output;
     }
 
-    [Fact(Skip = "Local-only: requires extracted, decrypted BT files at a hardcoded path.")]
+    [Fact]
     public void Parse_Em001Master_HasRootSelectorWithExpectedChildren()
     {
         string path = Path.Combine(BtRootDir, Em001Master);
@@ -58,7 +58,7 @@ public class BtParserTest
         Assert.Equal("<", health.GetAttr("OperationChar"));
     }
 
-    [Fact(Skip = "Local-only: requires extracted, decrypted BT files at a hardcoded path.")]
+    [Fact]
     public void Loader_Resolves_DottedSubNodeSelector()
     {
         var loader = new BtTreeLoader(BtRootDir);
@@ -74,7 +74,7 @@ public class BtParserTest
         Assert.Equal("Root_node.Sleep", sub);
     }
 
-    [Fact(Skip = "Local-only: requires extracted, decrypted BT files at a hardcoded path.")]
+    [Fact]
     public void Loader_Resolves_RelativePath()
     {
         var loader = new BtTreeLoader(BtRootDir);

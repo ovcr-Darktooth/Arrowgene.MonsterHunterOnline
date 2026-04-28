@@ -1,0 +1,1 @@
+<Behavior Ver="1.5"><Node Name="Root_node" Type="Root" Node_id="1"><Connector Identifier="GenericChildren"><Node Name="Sequence0" Type="Sequence" Node_id="2"><Connector Identifier="GenericChildren"><Node Name="ResetMobLocomotion" Type="Action" Node_id="18" BTFunName="ResetMobLocomotion" Operation="BTCall"></Node></Connector></Node></Connector></Node></Behavior>

@@ -1,0 +1,1 @@
+<Behavior Ver="1.01"><Node Name="Root_Node" Type="Root" Node_id="1"><Connector Identifier="GenericChildren"><Node Name="Precondtion_IsInCombat" Type="Sequence" Node_id="3"><Connector Identifier="GenericChildren"><Node Name="IsInCombat" Type="Condition" Node_id="5" KeyName="InCombat" Operation="BlackBoardCheck" Value="True"></Node></Connector></Node></Connector></Node></Behavior>

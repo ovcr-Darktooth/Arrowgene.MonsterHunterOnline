@@ -1,0 +1,126 @@
+<BlackBoard>
+	<Types>
+		<Type Name="ABC">
+			<content Name="AAA">
+			</content>
+		</Type>
+	</Types>
+	<Vars>
+		<Var Name="SkillSpeed" Type="Float" Value="1">
+		</Var>
+		<Var Name="TargetPos" Type="Vec3">
+		</Var>
+		<Var Name="TargetID" Type="Uint32">
+		</Var>
+		<Var Name="TargetSrvID" Type="Int">
+		</Var>
+		<Var Name="NeedMove" Type="Bool">
+		</Var>
+		<Var Name="NeedMoveAnim" Type="Bool">
+		</Var>
+		<Var Name="MoveSpeed" Type="Vec3">
+		</Var>
+		<Var Name="MoveToTarget" Type="String">
+		</Var>
+		<Var Name="MoveType" Type="String">
+		</Var>
+		<Var Name="TargetOrientation" Type="Vec3">
+		</Var>
+		<Var Name="RotateSpeed" Type="Vec3">
+		</Var>
+		<Var Name="RotateSpeedByAnim" Type="Bool">
+		</Var>
+		<Var Name="NeedRotate" Type="Bool">
+		</Var>
+		<Var Name="NeedRotateAnim" Type="Bool">
+		</Var>
+		<Var Name="RotateToTarget" Type="String">
+		</Var>
+		<Var Name="TargetOrientation" Type="Vec3">
+		</Var>
+		<Var Name="Area" Type="String">
+		</Var>
+		<Var Name="TargetArea" Type="String">
+		</Var>
+		<Var Name="TargetPath" Type="String">
+		</Var>
+		<Var Name="TargetPathLength" Type="Uint32">
+		</Var>
+		<Var Name="TargetIndex" Type="Uint32" Value="0">
+		</Var>
+		<Var Name="State" Type="String" Value="None">
+		</Var>
+		<Var Name="SubState" Type="String" Value="None">
+		</Var>
+		<Var Name="CurState" Type="String" Value="None">
+		</Var>
+		<Var Name="LastState" Type="String" Value="None">
+		</Var>
+		<Var Name="IdleRecordTime" Type="Float">
+		</Var>
+		<Var Name="RecordTime" Type="Float">
+		</Var>
+		<Var Name="TargetPathLength" Type="Uint32">
+		</Var>
+		<Var Name="TempString" Type="String">
+		</Var>
+		<Var Name="TempUnit32" Type="Uint32">
+		</Var>
+		<Var Name="TempFloat" Type="Float">
+		</Var>
+		<Var Name="MaxHealth" Type="Float" Value="1800">
+		</Var>
+		<Var Name="C1" Type="Float" Value="100">
+		</Var>
+		<Var Name="C2" Type="Float" Value="100">
+		</Var>
+		<Var Name="C3" Type="Float" Value="100">
+		</Var>
+		<Var Name="AttackPlayerSuccess" Type="Bool">
+		</Var>
+		<Var Name="AttackReadyTimeRecord" Type="Float">
+		</Var>
+		<Var Name="LastAttackAction" Type="String" Value="None">
+		</Var>
+		<Var Name="Angry" Type="Float" Value="0">
+		</Var>
+		<Var Name="Tired" Type="Float" Value="0">
+		</Var>
+		<Var Name="Hungry" Type="Float" Value="0">
+		</Var>
+		<Var Name="Stimuli_UI_Events" Type="Bool">
+		</Var>
+		<Var Name="EventParam1" Type="Int">
+		</Var>
+		<Var Name="EventParam2" Type="Uint32">
+		</Var>
+		<Var Name="EventParam3" Type="Uint32">
+		</Var>
+		<Var Name="EventParam4" Type="Uint32">
+		</Var>
+		<Var Name="EventParamFloat" Type="Float">
+		</Var>
+		<Var Name="EventParamVec" Type="Vec3">
+		</Var>
+		<Var Name="EventParamVec2" Type="Vec3">
+		</Var>
+		<Var Name="EventParamStr" Type="String">
+		</Var>
+		<Var Name="NpcAnimationName1" Type="String">
+		</Var>
+		<Var Name="NpcAnimationName2" Type="String">
+		</Var>
+		<Var Name="NpcAnimationName3" Type="String">
+		</Var>
+		<Var Name="NpcAnimationName4" Type="String">
+		</Var>
+		<Var Name="NpcAnimationName5" Type="String">
+		</Var>
+		<Var Name="NpcAnimationName6" Type="String">
+		</Var>
+		<Var Name="NpcAnimationName7" Type="String">
+		</Var>
+		<Var Name="NpcAnimationName8" Type="String">
+		</Var>
+	</Vars>
+</BlackBoard>

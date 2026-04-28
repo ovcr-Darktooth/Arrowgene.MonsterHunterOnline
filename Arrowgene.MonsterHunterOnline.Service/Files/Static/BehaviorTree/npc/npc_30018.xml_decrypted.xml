@@ -1,0 +1,194 @@
+<Behavior Ver="1.5">
+	<Node Name="Root_node" Type="Root" Node_id="1">
+		<Connector Identifier="GenericChildren">
+			<Node Name="Sequence3" Type="Sequence" Node_id="166">
+				<Connector Identifier="GenericChildren">
+					<Node Name="Sequence0" Type="Sequence" Node_id="3">
+						<Connector Identifier="GenericChildren">
+							<Node Name="SetPath" Type="Action" Node_id="10" KeyName="TargetPath" Operation="SetBlackBoard" Value="AIPath5">
+							</Node>
+							<Node Name="SetPathLength" Type="Action" Node_id="9" Operation="SetPathLength">
+							</Node>
+							<Node Name="NPCPathMoveWalk" Type="Reference" Node_id="59" Reference="NPCPathMoveWalk">
+							</Node>
+							<Node Name="Sequence1" Type="Sequence" Node_id="129">
+								<Connector Identifier="GenericChildren">
+									<Node Name="hello" Type="Action" Node_id="127" AnimSequence="Connect_Salute_Hello" Operation="AnimSequencePlay">
+									</Node>
+									<Node Name="hello" Type="Action" Node_id="143" AnimSequence="Behavior_Talk_Whatever_ToLoop" Operation="AnimSequencePlay">
+									</Node>
+									<Node Name="SetTime" Type="Action" Node_id="128" Operation="SetTime">
+									</Node>
+									<Node Name="Until_Fails" Type="Filter" Node_id="130" Filter_Type="Until_Fails">
+										<Connector Identifier="GenericChildren">
+											<Node Name="Not" Type="Filter" Node_id="142" Filter_Type="Non">
+												<Connector Identifier="GenericChildren">
+													<Node Name="Sequence1" Type="Sequence" Node_id="132">
+														<Connector Identifier="GenericChildren">
+															<Node Name="Selector1" Type="Selector" Node_id="148" SelectorType="Random">
+																<Connector Identifier="GenericChildren">
+																	<Node Name="Behavior_Talk_Whatever_Loop" Type="Action" Node_id="144" AnimSequence="Behavior_Talk_Whatever_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																	<Node Name="Behavior_Talk_RaiseHand_Loop" Type="Action" Node_id="145" AnimSequence="Behavior_Talk_RaiseHand_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																	<Node Name="Behavior_Talk_Come_Loop" Type="Action" Node_id="146" AnimSequence="Behavior_Talk_Come_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																</Connector>
+															</Node>
+															<Node Name="TimeCheck" Type="Condition" Node_id="135" Operation="TimeCheck" Value="10">
+															</Node>
+														</Connector>
+													</Node>
+												</Connector>
+											</Node>
+										</Connector>
+									</Node>
+									<Node Name="Behavior_Talk_End" Type="Action" Node_id="147" AnimSequence="Behavior_Talk_End" Operation="AnimSequencePlay">
+									</Node>
+								</Connector>
+							</Node>
+						</Connector>
+					</Node>
+					<Node Name="Sequence0" Type="Sequence" Node_id="149">
+						<Connector Identifier="GenericChildren">
+							<Node Name="SetPath" Type="Action" Node_id="150" KeyName="TargetPath" Operation="SetBlackBoard" Value="AIPath6">
+							</Node>
+							<Node Name="SetPathLength" Type="Action" Node_id="151" Operation="SetPathLength">
+							</Node>
+							<Node Name="NPCPathMoveWalk" Type="Reference" Node_id="152" Reference="NPCPathMoveWalk">
+							</Node>
+							<Node Name="Sequence1" Type="Sequence" Node_id="153">
+								<Connector Identifier="GenericChildren">
+									<Node Name="hello" Type="Action" Node_id="154" AnimSequence="Connect_Salute_Hello" Operation="AnimSequencePlay">
+									</Node>
+									<Node Name="hello" Type="Action" Node_id="155" AnimSequence="Behavior_Talk_Whatever_ToLoop" Operation="AnimSequencePlay">
+									</Node>
+									<Node Name="SetTime" Type="Action" Node_id="156" Operation="SetTime">
+									</Node>
+									<Node Name="Until_Fails" Type="Filter" Node_id="157" Filter_Type="Until_Fails">
+										<Connector Identifier="GenericChildren">
+											<Node Name="Not" Type="Filter" Node_id="158" Filter_Type="Non">
+												<Connector Identifier="GenericChildren">
+													<Node Name="Sequence1" Type="Sequence" Node_id="159">
+														<Connector Identifier="GenericChildren">
+															<Node Name="Selector1" Type="Selector" Node_id="160" SelectorType="Random">
+																<Connector Identifier="GenericChildren">
+																	<Node Name="Behavior_Talk_Whatever_Loop" Type="Action" Node_id="161" AnimSequence="Behavior_Talk_Whatever_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																	<Node Name="Behavior_Talk_RaiseHand_Loop" Type="Action" Node_id="162" AnimSequence="Behavior_Talk_RaiseHand_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																	<Node Name="Behavior_Talk_Come_Loop" Type="Action" Node_id="163" AnimSequence="Behavior_Talk_Come_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																</Connector>
+															</Node>
+															<Node Name="TimeCheck" Type="Condition" Node_id="164" Operation="TimeCheck" Value="10">
+															</Node>
+														</Connector>
+													</Node>
+												</Connector>
+											</Node>
+										</Connector>
+									</Node>
+									<Node Name="Behavior_Talk_End" Type="Action" Node_id="165" AnimSequence="Behavior_Talk_End" Operation="AnimSequencePlay">
+									</Node>
+								</Connector>
+							</Node>
+						</Connector>
+					</Node>
+					<Node Name="Sequence0" Type="Sequence" Node_id="167">
+						<Connector Identifier="GenericChildren">
+							<Node Name="SetPath" Type="Action" Node_id="168" KeyName="TargetPath" Operation="SetBlackBoard" Value="AIPath7">
+							</Node>
+							<Node Name="SetPathLength" Type="Action" Node_id="169" Operation="SetPathLength">
+							</Node>
+							<Node Name="NPCPathMoveWalk" Type="Reference" Node_id="170" Reference="NPCPathMoveWalk">
+							</Node>
+							<Node Name="Sequence1" Type="Sequence" Node_id="171">
+								<Connector Identifier="GenericChildren">
+									<Node Name="hello" Type="Action" Node_id="172" AnimSequence="Connect_Salute_Hello" Operation="AnimSequencePlay">
+									</Node>
+									<Node Name="hello" Type="Action" Node_id="173" AnimSequence="Behavior_Talk_Whatever_ToLoop" Operation="AnimSequencePlay">
+									</Node>
+									<Node Name="SetTime" Type="Action" Node_id="174" Operation="SetTime">
+									</Node>
+									<Node Name="Until_Fails" Type="Filter" Node_id="175" Filter_Type="Until_Fails">
+										<Connector Identifier="GenericChildren">
+											<Node Name="Not" Type="Filter" Node_id="176" Filter_Type="Non">
+												<Connector Identifier="GenericChildren">
+													<Node Name="Sequence1" Type="Sequence" Node_id="177">
+														<Connector Identifier="GenericChildren">
+															<Node Name="Selector1" Type="Selector" Node_id="178" SelectorType="Random">
+																<Connector Identifier="GenericChildren">
+																	<Node Name="Behavior_Talk_Whatever_Loop" Type="Action" Node_id="179" AnimSequence="Behavior_Talk_Whatever_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																	<Node Name="Behavior_Talk_RaiseHand_Loop" Type="Action" Node_id="180" AnimSequence="Behavior_Talk_RaiseHand_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																	<Node Name="Behavior_Talk_Come_Loop" Type="Action" Node_id="181" AnimSequence="Behavior_Talk_Come_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																</Connector>
+															</Node>
+															<Node Name="TimeCheck" Type="Condition" Node_id="182" Operation="TimeCheck" Value="10">
+															</Node>
+														</Connector>
+													</Node>
+												</Connector>
+											</Node>
+										</Connector>
+									</Node>
+									<Node Name="Behavior_Talk_End" Type="Action" Node_id="183" AnimSequence="Behavior_Talk_End" Operation="AnimSequencePlay">
+									</Node>
+								</Connector>
+							</Node>
+						</Connector>
+					</Node>
+					<Node Name="Sequence0" Type="Sequence" Node_id="184">
+						<Connector Identifier="GenericChildren">
+							<Node Name="SetPath" Type="Action" Node_id="185" KeyName="TargetPath" Operation="SetBlackBoard" Value="AIPath8">
+							</Node>
+							<Node Name="SetPathLength" Type="Action" Node_id="186" Operation="SetPathLength">
+							</Node>
+							<Node Name="NPCPathMoveWalk" Type="Reference" Node_id="187" Reference="NPCPathMoveWalk">
+							</Node>
+							<Node Name="Sequence1" Type="Sequence" Node_id="188">
+								<Connector Identifier="GenericChildren">
+									<Node Name="hello" Type="Action" Node_id="189" AnimSequence="Connect_Salute_Hello" Operation="AnimSequencePlay">
+									</Node>
+									<Node Name="hello" Type="Action" Node_id="190" AnimSequence="Behavior_Talk_Whatever_ToLoop" Operation="AnimSequencePlay">
+									</Node>
+									<Node Name="SetTime" Type="Action" Node_id="191" Operation="SetTime">
+									</Node>
+									<Node Name="Until_Fails" Type="Filter" Node_id="192" Filter_Type="Until_Fails">
+										<Connector Identifier="GenericChildren">
+											<Node Name="Not" Type="Filter" Node_id="193" Filter_Type="Non">
+												<Connector Identifier="GenericChildren">
+													<Node Name="Sequence1" Type="Sequence" Node_id="194">
+														<Connector Identifier="GenericChildren">
+															<Node Name="Selector1" Type="Selector" Node_id="195" SelectorType="Random">
+																<Connector Identifier="GenericChildren">
+																	<Node Name="Behavior_Talk_Whatever_Loop" Type="Action" Node_id="196" AnimSequence="Behavior_Talk_Whatever_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																	<Node Name="Behavior_Talk_RaiseHand_Loop" Type="Action" Node_id="197" AnimSequence="Behavior_Talk_RaiseHand_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																	<Node Name="Behavior_Talk_Come_Loop" Type="Action" Node_id="198" AnimSequence="Behavior_Talk_Come_Loop" Operation="AnimSequencePlay">
+																	</Node>
+																</Connector>
+															</Node>
+															<Node Name="TimeCheck" Type="Condition" Node_id="199" Operation="TimeCheck" Value="10">
+															</Node>
+														</Connector>
+													</Node>
+												</Connector>
+											</Node>
+										</Connector>
+									</Node>
+									<Node Name="Behavior_Talk_End" Type="Action" Node_id="200" AnimSequence="Behavior_Talk_End" Operation="AnimSequencePlay">
+									</Node>
+								</Connector>
+							</Node>
+						</Connector>
+					</Node>
+				</Connector>
+			</Node>
+		</Connector>
+	</Node>
+</Behavior>

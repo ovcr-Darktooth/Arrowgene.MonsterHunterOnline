@@ -1,0 +1,17 @@
+<Behavior Ver="1.5">
+    <Node Name="Root_Node" Type="Root" Node_id="1">
+        <Connector Identifier="GenericChildren">
+            <Node Name="Sequence1" Type="Sequence" Node_id="2">
+                <Connector Identifier="GenericChildren">
+                    <Node Name="Reference1" Type="Reference" Node_id="71"
+                        Reference="..\Common\Locomotion\8Walk.xml"></Node>
+                </Connector>
+            </Node>
+        </Connector>
+    </Node>
+    <OverrideNode SrcNodeRTPath="Em015\8Walk.xml : 71 |Common\Locomotion\8Walk.xml : 14"
+        SrcNodeType="Action" IsSubTree="0" Index="0" DependIndex="-1">
+        <Node Name="RotateToPlayer" Type="Action" Node_id="141" BTFunName="RotateToPlayer"
+            Operation="BTCall"></Node>
+    </OverrideNode>
+</Behavior>

@@ -1,0 +1,1 @@
+<Behavior Ver="1.5"><Node Name="Root_Node" Type="Root" Node_id="1"><Connector Identifier="GenericChildren"><Node Name="Sequence1" Type="Sequence" Node_id="3"><Connector Identifier="GenericChildren"><Node Name="ExEffectSpawn" Type="Reference" Node_id="7" Reference=".\BTCall\ExEffectSpawn.xml"></Node></Connector></Node></Connector></Node></Behavior>

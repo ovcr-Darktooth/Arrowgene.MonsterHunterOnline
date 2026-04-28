@@ -1,0 +1,88 @@
+<Behavior Ver="1">
+	<Node Name="Root Node" Type="Root" Node_id="1">
+		<Connector Identifier="GenericChildren">
+			<Node Name="Selector 1" Type="Selector" Node_id="10" SelectorType="General">
+				<Connector Identifier="GenericChildren">
+					<Node Name="Sequence 0" Type="Sequence" Node_id="3">
+						<Connector Identifier="GenericChildren">
+							<Node Name="CheckAction" Type="Condition" Node_id="4" KeyName="TestCmd" Operation="BlackBoardCheck" OperationChar="=" Value="1">
+							</Node>
+							<Node Name="SetSkillSpeed" Type="Action" Node_id="7" KeyName="SkillSpeed" Operation="SetBlackBoard" Value="1.0">
+							</Node>
+							<Node Name="FireBall" Type="Action" Node_id="5" AnimSequence="FireBall" AnimSequenceSpeedBBName="SkillSpeed" Operation="AnimSequencePlay">
+							</Node>
+							<Node Name="SubPower" Type="Action" Node_id="37" KeyName="Power" KeyNameOP1="Power" OP="-" Operation="SetBlackBoardBBOPC" Value="200">
+							</Node>
+							<Node Name="SetCmd" Type="Action" Node_id="6" KeyName="TestCmd" Operation="SetBlackBoard" Value="1000">
+							</Node>
+						</Connector>
+					</Node>
+					<Node Name="Sequence 2" Type="Sequence" Node_id="9">
+						<Connector Identifier="GenericChildren">
+							<Node Name="CheckAction" Type="Condition" Node_id="11" KeyName="TestCmd" Operation="BlackBoardCheck" OperationChar="=" Value="2">
+							</Node>
+							<Node Name="SetSkillSpeed" Type="Action" Node_id="12" KeyName="SkillSpeed" Operation="SetBlackBoard" Value="1.0">
+							</Node>
+							<Node Name="Dragon Dash" Type="Action" Node_id="13" AnimSequence="DragonDash" AnimSequenceSpeedBBName="SkillSpeed" Operation="AnimSequencePlay">
+							</Node>
+							<Node Name="SetCmd" Type="Action" Node_id="14" KeyName="TestCmd" Operation="SetBlackBoard" Value="1000">
+							</Node>
+							<Node Name="SubPower" Type="Action" Node_id="38" KeyName="Power" KeyNameOP1="Power" OP="-" Operation="SetBlackBoardBBOPC" Value="10">
+							</Node>
+						</Connector>
+					</Node>
+					<Node Name="Sequence 3" Type="Sequence" Node_id="15">
+						<Connector Identifier="GenericChildren">
+							<Node Name="CheckAction" Type="Condition" Node_id="16" KeyName="TestCmd" Operation="BlackBoardCheck" OperationChar="=" Value="6">
+							</Node>
+							<Node Name="SetSkillSpeed" Type="Action" Node_id="17" KeyName="SkillSpeed" Operation="SetBlackBoard" Value="1.0">
+							</Node>
+							<Node Name="RightClawTail" Type="Action" Node_id="18" AnimSequence="RightClawTail" AnimSequenceSpeedBBName="SkillSpeed" Operation="AnimSequencePlay">
+							</Node>
+							<Node Name="SubPower" Type="Action" Node_id="39" KeyName="Power" KeyNameOP1="Power" OP="-" Operation="SetBlackBoardBBOPC" Value="10">
+							</Node>
+							<Node Name="SetCmd" Type="Action" Node_id="19" KeyName="TestCmd" Operation="SetBlackBoard" Value="1000">
+							</Node>
+						</Connector>
+					</Node>
+					<Node Name="Sequence 4" Type="Sequence" Node_id="20">
+						<Connector Identifier="GenericChildren">
+							<Node Name="CheckAction" Type="Condition" Node_id="21" KeyName="TestCmd" Operation="BlackBoardCheck" OperationChar="=" Value="4">
+							</Node>
+							<Node Name="SetSkillSpeed" Type="Action" Node_id="22" KeyName="SkillSpeed" Operation="SetBlackBoard" Value="1.0">
+							</Node>
+							<Node Name="LeftClawTail" Type="Action" Node_id="23" AnimSequence="LeftClawTail" AnimSequenceSpeedBBName="SkillSpeed" Operation="AnimSequencePlay">
+							</Node>
+							<Node Name="SetCmd" Type="Action" Node_id="24" KeyName="TestCmd" Operation="SetBlackBoard" Value="1000">
+							</Node>
+						</Connector>
+					</Node>
+					<Node Name="Sequence 5" Type="Sequence" Node_id="25">
+						<Connector Identifier="GenericChildren">
+							<Node Name="CheckAction" Type="Condition" Node_id="26" KeyName="TestCmd" Operation="BlackBoardCheck" OperationChar="=" Value="5">
+							</Node>
+							<Node Name="SetSkillSpeed" Type="Action" Node_id="27" KeyName="SkillSpeed" Operation="SetBlackBoard" Value="1.0">
+							</Node>
+							<Node Name="UpendTail" Type="Action" Node_id="28" AnimSequence="UpendTail" AnimSequenceSpeedBBName="SkillSpeed" Operation="AnimSequencePlay">
+							</Node>
+							<Node Name="SetCmd" Type="Action" Node_id="29" KeyName="TestCmd" Operation="SetBlackBoard" Value="1000">
+							</Node>
+						</Connector>
+					</Node>
+					<Node Name="Sequence 6" Type="Sequence" Node_id="30">
+						<Connector Identifier="GenericChildren">
+							<Node Name="CheckAction" Type="Condition" Node_id="31" KeyName="TestCmd" Operation="BlackBoardCheck" OperationChar="=" Value="3">
+							</Node>
+							<Node Name="SetSkillSpeed" Type="Action" Node_id="32" KeyName="SkillSpeed" Operation="SetBlackBoard" Value="1.0">
+							</Node>
+							<Node Name="JumpBack" Type="Action" Node_id="33" AnimSequence="JumpBack" AnimSequenceSpeedBBName="SkillSpeed" Operation="AnimSequencePlay">
+							</Node>
+							<Node Name="SetCmd" Type="Action" Node_id="34" KeyName="TestCmd" Operation="SetBlackBoard" Value="1000">
+							</Node>
+						</Connector>
+					</Node>
+				</Connector>
+			</Node>
+		</Connector>
+	</Node>
+</Behavior>

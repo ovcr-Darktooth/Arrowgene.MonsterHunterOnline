@@ -9,8 +9,8 @@ namespace Arrowgene.MonsterHunterOnline.Test.Service.System.MonsterAISystem.Beha
 
 public class BtHandlersTest
 {
-    private const string BtRootDir =
-        @"O:\jeux-backup\MONSTER HUNTER ONLINE\MHO_TOOL\extracted\scripts\ai\behaviortree\em001";
+    private static readonly string BtRootDir =
+        Path.Combine(AppContext.BaseDirectory, "Files", "Static", "BehaviorTree", "em001");
 
     private readonly ITestOutputHelper _out;
 
@@ -219,7 +219,7 @@ public class BtHandlersTest
         Assert.IsType<EntityMoveToTargetHandler>(registry.GetAction("EntityMoveToTarget"));
     }
 
-    [Fact(Skip = "Local-only: requires extracted, decrypted BT files at a hardcoded path.")]
+    [Fact]
     public void Em001Master_TicksWithFullDefaultHandlers_NoMissingOps()
     {
         var loader = new BtTreeLoader(BtRootDir);

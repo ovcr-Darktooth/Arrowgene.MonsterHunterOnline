@@ -2,13 +2,16 @@ using System;
 using System.Threading;
 using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
+using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 using Arrowgene.MonsterHunterOnline.Service.Data;
+using Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorTree;
+using Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorTree.Handlers;
 
 namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
 {
     public enum MonsterAIState { Idle, Chase, Attack, Dead }
 
-    public class MonsterAI : IDisposable
+    public class MonsterAI : IDisposable, IBtMonsterAdapter
     {
         private const float AggroRange = 500f;
         private const float AttackRange = 5.0f;
@@ -41,7 +44,42 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private CSQuat _sequenceStartRot;
         private float _sequenceStartYaw;
         private (float x, float y, float z) _sequenceLocalOrigin;
-        
+
+        // Behavior Tree runtime (Phase 6.5).
+        private readonly BtRunner _btRunner;
+        private readonly Blackboard _btBlackboard;
+        private Client _lastTarget;
+        private float _lastTargetDist = float.MaxValue;
+        private bool _deathFired;
+
+        /// <summary>
+        /// Standalone attack-sequence names the fallback BT picks from (uniformly at random
+        /// among those present in the monster's <see cref="SequenceSet"/>). Only "complete"
+        /// attacks are listed — Start/Loop/End fragments (e.g. <c>Attack_Leap_F_Start</c> →
+        /// <c>Attack_Leap_F_Finish</c>) are skipped because the fallback BT doesn't chain
+        /// sequences yet. Names taken from em001skill — add other monsters' candidates as
+        /// they get tested.
+        /// </summary>
+        private static readonly string[] AttackCandidates =
+        {
+            "DragonDash",
+            "Attack_BodyDown_Fast",
+            "Attack_Swing_Claw_L_Fast",
+            "Attack_Swing_Claw_L_Heavy",
+            "Attack_Swing_Claw_R_Fast",
+            "Attack_Swing_Claw_R_Heavy",
+            "Attack_Throw_Claw_F",
+            "Attack_Throw_Tail_L",
+            "LeftClaw",
+            "RightClaw",
+            "BeaverRoll",
+            "RotateAttack",
+            // Generic monster fallbacks (may exist on other monsters' sets).
+            "Head", "Attack", "HeadAttack", "TailAttack",
+            "JumpAttack", "HipCheck", "Bite", "BiteAttack", "TurnAttack"
+        };
+        private static readonly Random _attackRng = new Random();
+
         public MonsterAI(uint netId, uint renderNetId, int monsterInfoId, CSVec3 spawnPos, MonsterAIManager manager, SequenceManager sequenceManager, int maxHp, PartsTable partsTable)
         {
             NetId = netId;
@@ -59,6 +97,9 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
 
             _partBreak = new PartBreakComponent(monsterInfoId, partsTable);
             _status = new StatusEffectComponent(monsterInfoId, partsTable);
+
+            _btBlackboard = new Blackboard();
+            _btRunner = MonsterAiFallbackBt.BuildRunner(this, _btBlackboard);
 
             _timer = new Timer(Tick, null, TickMs, TickMs);
         }
@@ -209,139 +250,246 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             return "em001";
         }
 
+        /// <summary>
+        /// Tick is split in two phases:
+        /// (A) advance any locked sequence (root-motion replay + hit events) and short-circuit
+        /// while the lock holds — sequence-lock semantics are owned by MonsterAI, not by the BT;
+        /// (B) refresh target + sync state into the blackboard, then tick the BT runner. The BT
+        /// chooses Idle/Chase/Attack and calls back into <see cref="StartAttack"/> /
+        /// <see cref="StepChaseTowardLastTarget"/> / <see cref="GoIdle"/> via custom handlers.
+        /// </summary>
         private void Tick(object _)
         {
             if (_disposed) return;
 
             try
             {
+                if (AdvanceLockedSequence()) return;
+
                 var (target, dist) = _manager.FindNearestPlayer(Position);
+                _lastTarget = target;
+                _lastTargetDist = dist;
 
-                // If executing a sequence, lock state until it finishes
-                if (_currentSequence != null)
-                {
-                    _sequenceTime += (TickMs / 1000f);
-
-                    if (_sequenceTime >= _currentSequence.TimeRange)
-                    {
-                        Logger.Debug($"Monster {NetId} finished sequence {_currentSequence.Name}");
-                        _currentSequence = null;
-                    }
-                    else
-                    {
-                        // Check hitboxes
-                        foreach (var hitEvent in _currentSequence.PhysicEvents)
-                        {
-                            if (Math.Abs(_sequenceTime - hitEvent.Time) < (TickMs / 1000f))
-                            {
-                                Logger.Info($"Monster {NetId} HitEvent -> {hitEvent.Name} (Firemode:{hitEvent.Firemode}, AttackData:{hitEvent.AttackData})");
-                            }
-                        }
-
-                        // Root-motion: sample baked Position curves and advance authoritative transform.
-                        if (_currentSequence.Position.HasAny)
-                        {
-                            var local = _currentSequence.Position.Sample(_sequenceTime);
-                            float lx = local.x - _sequenceLocalOrigin.x;
-                            float ly = local.y - _sequenceLocalOrigin.y;
-                            float lz = local.z - _sequenceLocalOrigin.z;
-
-                            // Local frame: +Y forward, +X right (CryEngine). Yaw measured CCW from world +X.
-                            float c = MathF.Cos(_sequenceStartYaw);
-                            float s = MathF.Sin(_sequenceStartYaw);
-                            float wx = lx * s + ly * c;
-                            float wy = -lx * c + ly * s;
-
-                            var newPos = new CSVec3(
-                                _sequenceStartPos.x + wx,
-                                _sequenceStartPos.y + wy,
-                                _sequenceStartPos.z + lz);
-                            var velocity = ComputeVelocity(Position, newPos, TickMs / 1000f);
-                            Position = newPos;
-                            SendMovestate(newPos, _sequenceStartRot, velocity);
-                        }
-
-                        return; // Lock behavior while animating
-                    }
-                }
-
-                if (target == null || dist > AggroRange)
-                {
-                    if (State != MonsterAIState.Idle)
-                    {
-                        State = MonsterAIState.Idle;
-                        Logger.Debug($"Monster {NetId} -> Idle");
-                        _manager.BroadcastMonsterActiveState(NetId, 1, Position, CurrentSyncTimeMs());
-                    }
-                    if (_currentSequence == null)
-                    {
-                        // Optionally broadcast idle, but playerstate didn't bother when target was lost, just didn't send anything.
-                    }
-                    return;
-                }
-
-                uint targetId = target.Character?.Id ?? 0;
-                CSVec3 targetPos = target.State.Position ?? target.State.InitSpawnPos;
-                float dist2D = Distance2D(Position, targetPos);
-                float tickSeconds = TickMs / 1000f;
-
-                if (dist2D <= AttackRange)
-                {
-                    State = MonsterAIState.Attack;
-
-                    CSQuat rot = LookAtQuat(Position, targetPos);
-                    float yawStart = MathF.Atan2(targetPos.y - Position.y, targetPos.x - Position.x);
-                    CSVec3 zeroSpeed = new(0, 0, 0);
-
-                    string attackSequence = "Head"; // Default fallback
-                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Attack")) attackSequence = "Attack";
-                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Head")) attackSequence = "Head";
-                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("DragonDash")) attackSequence = "Idle";
-
-                    SendLocomotion(Position, rot, targetPos, zeroSpeed, attackSequence, 0, true, true);
-                    SendMovestate(Position, rot, zeroSpeed);
-                    BroadcastSequenceState(attackSequence, 0f, Position, rot);
-
-                    // Lock sequence + capture start pose for root-motion replay
-                    _sequenceStartPos = CloneVec(Position);
-                    _sequenceStartRot = rot;
-                    _sequenceStartYaw = yawStart;
-                    if (_sequenceSet != null && _sequenceSet.Sequences.TryGetValue(attackSequence, out var seq))
-                    {
-                        _currentSequence = seq;
-                        _sequenceTime = 0f;
-                        _sequenceLocalOrigin = seq.Position.HasAny ? seq.Position.Sample(0f) : (0f, 0f, 0f);
-                    }
-                    else
-                    {
-                        // Fake sequence lock if no data (like PlayerState did with 1.63 seconds)
-                        _currentSequence = new SequenceData { Name = attackSequence, TimeRange = 1.63f };
-                        _sequenceTime = 0f;
-                        _sequenceLocalOrigin = (0f, 0f, 0f);
-                    }
-                }
-                else
-                {
-                    State = MonsterAIState.Chase;
-                    
-                    CSVec3 nextPos = StepToward(Position, targetPos, MoveSpeedPerTick);
-                    CSQuat moveRot = LookAtQuat(Position, targetPos);
-                    CSVec3 moveSpeed = ComputeVelocity(Position, nextPos, tickSeconds);
-
-                    string moveSequence = "Run";
-                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Dash")) moveSequence = "Dash";
-                    if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Run_F")) moveSequence = "Run_F";
-
-                    SendLocomotion(Position, moveRot, nextPos, moveSpeed, moveSequence, 0, false, false);
-                    SendMovestate(nextPos, moveRot, moveSpeed);
-
-                    Position = CloneVec(nextPos);
-                }
+                SyncBlackboard();
+                _btRunner.Tick(TickMs / 1000f);
             }
             catch (Exception ex)
             {
                 Logger.Error($"Monster {NetId} tick error: {ex.Message}");
             }
+        }
+
+        /// <summary>Returns true while a sequence is still playing and the BT must NOT tick.</summary>
+        private bool AdvanceLockedSequence()
+        {
+            if (_currentSequence == null) return false;
+
+            _sequenceTime += (TickMs / 1000f);
+
+            if (_sequenceTime >= _currentSequence.TimeRange)
+            {
+                Logger.Debug($"Monster {NetId} finished sequence {_currentSequence.Name}");
+                _currentSequence = null;
+                return false;
+            }
+
+            // Check hitboxes
+            foreach (var hitEvent in _currentSequence.PhysicEvents)
+            {
+                if (Math.Abs(_sequenceTime - hitEvent.Time) < (TickMs / 1000f))
+                {
+                    Logger.Info($"Monster {NetId} HitEvent -> {hitEvent.Name} (Firemode:{hitEvent.Firemode}, AttackData:{hitEvent.AttackData})");
+                }
+            }
+
+            // Root-motion: sample baked Position curves and advance authoritative transform.
+            if (_currentSequence.Position.HasAny)
+            {
+                var local = _currentSequence.Position.Sample(_sequenceTime);
+                float lx = local.x - _sequenceLocalOrigin.x;
+                float ly = local.y - _sequenceLocalOrigin.y;
+                float lz = local.z - _sequenceLocalOrigin.z;
+
+                // Local frame: +Y forward, +X right (CryEngine). Yaw measured CCW from world +X.
+                float c = MathF.Cos(_sequenceStartYaw);
+                float s = MathF.Sin(_sequenceStartYaw);
+                float wx = lx * s + ly * c;
+                float wy = -lx * c + ly * s;
+
+                var newPos = new CSVec3(
+                    _sequenceStartPos.x + wx,
+                    _sequenceStartPos.y + wy,
+                    _sequenceStartPos.z + lz);
+                var velocity = ComputeVelocity(Position, newPos, TickMs / 1000f);
+                Position = newPos;
+                SendMovestate(newPos, _sequenceStartRot, velocity);
+            }
+
+            return true;
+        }
+
+        /// <summary>Mirrors authoritative state into the BT blackboard at the start of each BT tick.</summary>
+        private void SyncBlackboard()
+        {
+            _btBlackboard.Set("Health", CurrentHp);
+            _btBlackboard.Set("MaxHealth", MaxHp);
+            _btBlackboard.Set("Dead", CurrentHp <= 0);
+        }
+
+        // --- Internals consumed by FallbackBtHandlers (kept as instance helpers so the
+        // legacy Idle/Chase/Attack code stays in one place — the handlers just route to it). ---
+
+        internal Client LastTarget => _lastTarget;
+        internal float LastTargetDistance => _lastTargetDist;
+        internal bool HasAggroTarget => _lastTarget != null && _lastTargetDist <= AggroRange;
+
+        /// <summary>
+        /// Attack range uses 2D (XY) distance — the legacy Tick did the same. _lastTargetDist
+        /// is 3D (from FindNearestPlayer) and would gate out attacks whenever the player has
+        /// any Z offset relative to the monster (e.g. terrain steps).
+        /// </summary>
+        internal bool IsTargetInAttackRange
+        {
+            get
+            {
+                if (_lastTarget == null) return false;
+                CSVec3 targetPos = _lastTarget.State.Position ?? _lastTarget.State.InitSpawnPos;
+                if (targetPos == null) return false;
+                return Distance2D(Position, targetPos) <= AttackRange;
+            }
+        }
+
+        /// <summary>Picks an attack sequence, broadcasts it, and locks <c>_currentSequence</c>.</summary>
+        internal void StartAttack()
+        {
+            if (_lastTarget == null) return;
+            CSVec3 targetPos = _lastTarget.State.Position ?? _lastTarget.State.InitSpawnPos;
+            State = MonsterAIState.Attack;
+
+            CSQuat rot = LookAtQuat(Position, targetPos);
+            float yawStart = MathF.Atan2(targetPos.y - Position.y, targetPos.x - Position.x);
+            CSVec3 zeroSpeed = new(0, 0, 0);
+
+            string attackSequence = PickRandomAttackSequence();
+
+            SendLocomotion(Position, rot, targetPos, zeroSpeed, attackSequence, 0, true, true);
+            SendMovestate(Position, rot, zeroSpeed);
+            BroadcastSequenceState(attackSequence, 0f, Position, rot);
+
+            _sequenceStartPos = CloneVec(Position);
+            _sequenceStartRot = rot;
+            _sequenceStartYaw = yawStart;
+            if (_sequenceSet != null && _sequenceSet.Sequences.TryGetValue(attackSequence, out var seq))
+            {
+                _currentSequence = seq;
+                _sequenceTime = 0f;
+                _sequenceLocalOrigin = seq.Position.HasAny ? seq.Position.Sample(0f) : (0f, 0f, 0f);
+            }
+            else
+            {
+                // Fake sequence lock if no data (like PlayerState did with 1.63 seconds)
+                _currentSequence = new SequenceData { Name = attackSequence, TimeRange = 1.63f };
+                _sequenceTime = 0f;
+                _sequenceLocalOrigin = (0f, 0f, 0f);
+            }
+        }
+
+        /// <summary>Advances the chase one tick toward the cached last target.</summary>
+        internal void StepChaseTowardLastTarget()
+        {
+            if (_lastTarget == null) return;
+            CSVec3 targetPos = _lastTarget.State.Position ?? _lastTarget.State.InitSpawnPos;
+            State = MonsterAIState.Chase;
+
+            float tickSeconds = TickMs / 1000f;
+            CSVec3 nextPos = StepToward(Position, targetPos, MoveSpeedPerTick);
+            CSQuat moveRot = LookAtQuat(Position, targetPos);
+            CSVec3 moveSpeed = ComputeVelocity(Position, nextPos, tickSeconds);
+
+            string moveSequence = "Run";
+            if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Dash")) moveSequence = "Dash";
+            if (_sequenceSet != null && _sequenceSet.Sequences.ContainsKey("Run_F")) moveSequence = "Run_F";
+
+            SendLocomotion(Position, moveRot, nextPos, moveSpeed, moveSequence, 0, false, false);
+            SendMovestate(nextPos, moveRot, moveSpeed);
+
+            Position = CloneVec(nextPos);
+        }
+
+        /// <summary>
+        /// Picks one of the loaded attack sequences uniformly at random. Filters
+        /// <see cref="AttackCandidates"/> against the monster's <see cref="SequenceSet"/>
+        /// so only sequences that actually exist are considered. Falls back to "Head" if
+        /// no candidates match (legacy behaviour).
+        /// </summary>
+        private string PickRandomAttackSequence()
+        {
+            if (_sequenceSet == null) return "Head";
+
+            string pick = null;
+            int seen = 0;
+            foreach (string candidate in AttackCandidates)
+            {
+                if (!_sequenceSet.Sequences.ContainsKey(candidate)) continue;
+                seen++;
+                // Reservoir sampling, n=1: each candidate has 1/seen chance to replace
+                // the current pick — uniform across whichever entries actually match.
+                if (_attackRng.Next(seen) == 0) pick = candidate;
+            }
+            return pick ?? "Head";
+        }
+
+        /// <summary>Transitions to Idle and broadcasts MonsterActiveState=1 once on entry.</summary>
+        internal void GoIdle()
+        {
+            if (State != MonsterAIState.Idle)
+            {
+                State = MonsterAIState.Idle;
+                Logger.Debug($"Monster {NetId} -> Idle");
+                _manager.BroadcastMonsterActiveState(NetId, 1, Position, CurrentSyncTimeMs());
+            }
+        }
+
+        // --- IBtMonsterAdapter ---
+
+        public bool IsAlive => !_disposed && CurrentHp > 0;
+        public bool IsSequencePlaying() => _currentSequence != null;
+        public bool IsSequencePlaying(string sequenceName)
+            => _currentSequence != null && _currentSequence.Name == sequenceName;
+
+        /// <summary>
+        /// Generic adapter entry point used by the Phase 6.4 <c>AnimSequencePlay</c> handler
+        /// (real em001 BT). The fallback BT goes through <see cref="StartAttack"/> instead and
+        /// never reaches this. Returns false if the sequence is unknown or another sequence is
+        /// already locked.
+        /// </summary>
+        public bool TryStartSequence(string sequenceName)
+        {
+            if (string.IsNullOrEmpty(sequenceName)) return false;
+            if (_currentSequence != null) return false;
+            if (_sequenceSet == null || !_sequenceSet.Sequences.TryGetValue(sequenceName, out var seq))
+                return false;
+
+            CSQuat rot = _sequenceStartRot ?? new CSQuat(1f, 0, 0, 0);
+            CSVec3 zeroSpeed = new(0, 0, 0);
+            SendLocomotion(Position, rot, Position, zeroSpeed, sequenceName, 0, true, true);
+            SendMovestate(Position, rot, zeroSpeed);
+            BroadcastSequenceState(sequenceName, 0f, Position, rot);
+
+            _sequenceStartPos = CloneVec(Position);
+            _sequenceStartRot = rot;
+            _sequenceStartYaw = 0f;
+            _currentSequence = seq;
+            _sequenceTime = 0f;
+            _sequenceLocalOrigin = seq.Position.HasAny ? seq.Position.Sample(0f) : (0f, 0f, 0f);
+            return true;
+        }
+
+        /// <summary>Adapter death entry point — idempotent; first call delegates to <see cref="makeDie"/>.</summary>
+        public void HandleDeath()
+        {
+            if (_deathFired) return;
+            makeDie();
         }
 
         private void SendLocomotion(CSVec3 position, CSQuat rotation, CSVec3 targetPos, CSVec3 moveSpeed, string animSequence, uint skillId, bool restartAnim, bool needTargetAttackPos)
@@ -395,6 +543,10 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
 
         public void makeDie()
         {
+            if (_deathFired) return;
+            _deathFired = true;
+            State = MonsterAIState.Dead;
+
             CSQuat rot = new CSQuat();
             CSVec3 zeroSpeed = new(0, 0, 0);
             SendLocomotion(Position, rot, Position, zeroSpeed, "Die", 0, true, true);
@@ -455,6 +607,13 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
 
+        /// <summary>
+        /// Builds a yaw-only quaternion that rotates the model's intrinsic forward (+Y in
+        /// CryEngine character space) to the world-space direction (to - from). Subtracting
+        /// π/2 from atan2(dy, dx) compensates for the +Y-forward convention — without it,
+        /// the encoded rotation aligns model-+Y with world-+X and the monster appears 90°
+        /// off from its chase target.
+        /// </summary>
         private static CSQuat LookAtQuat(CSVec3 from, CSVec3 to)
         {
             float deltaX = to.x - from.x;
@@ -465,7 +624,7 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
                 return new CSQuat(1.0f, 0, 0, 0);
             }
 
-            return YawQuat(MathF.Atan2(deltaY, deltaX));
+            return YawQuat(MathF.Atan2(deltaY, deltaX) - MathF.PI / 2f);
         }
 
         private static CSQuat YawQuat(float yaw)

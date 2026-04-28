@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading;
 using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
@@ -92,14 +93,14 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             _manager = manager;
             _sequenceManager = sequenceManager;
 
-            string refName = GetMonsterRefName(monsterInfoId);
+            string refName = manager?.GetAssetId(monsterInfoId) ?? "em001";
             _sequenceSet = _sequenceManager?.GetOrLoad(refName);
 
             _partBreak = new PartBreakComponent(monsterInfoId, partsTable);
             _status = new StatusEffectComponent(monsterInfoId, partsTable);
 
             _btBlackboard = new Blackboard();
-            _btRunner = MonsterAiFallbackBt.BuildRunner(this, _btBlackboard);
+            _btRunner = BuildBtRunner(refName);
 
             _timer = new Timer(Tick, null, TickMs, TickMs);
         }
@@ -242,12 +243,39 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             return side > 0f ? FallDirection.Left : FallDirection.Right;
         }
 
-        private string GetMonsterRefName(int infoId)
+        /// <summary>
+        /// Builds the BT runner for this monster. When the manager has a configured
+        /// <see cref="BtTreeLoader"/> AND the master XML for this asset key resolves on disk
+        /// (e.g. <c>em001/em001.xml_decrypted.xml</c>), wires the real CryEngine BT through the
+        /// generic Phase 6.4 handlers. Otherwise falls back to the programmatic Idle/Chase/
+        /// Attack tree from <see cref="MonsterAiFallbackBt"/>. Either path produces a runner
+        /// using the same <see cref="_btBlackboard"/>, so HP/Dead sync stays unchanged.
+        /// </summary>
+        private BtRunner BuildBtRunner(string refName)
         {
-            if (infoId == 60030) return "em003"; // Test Bulldrome
-            if (infoId == 60010) return "em001"; // Test Bulldrome
-            if (infoId == 39004) return "em003";
-            return "em001";
+            BtTreeLoader loader = _manager?.BtLoader;
+            if (loader != null && !string.IsNullOrEmpty(refName))
+            {
+                string rel = Path.Combine(refName, refName + ".xml");
+                try
+                {
+                    BtTree tree = loader.Resolve(rel, parent: null, out _);
+                    if (tree != null)
+                    {
+                        BtHandlerRegistry registry = new BtHandlerRegistry();
+                        BtDefaultHandlers.RegisterAll(registry);
+                        BtContext ctx = new BtContext(_btBlackboard, loader, registry) { Owner = this };
+                        Logger.Info($"Monster {NetId} loaded master BT '{tree.SourcePath}'");
+                        return new BtRunner(tree, ctx);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error($"Monster {NetId} master BT load failed for '{refName}': {ex.Message} — falling back to programmatic BT");
+                }
+            }
+            Logger.Info($"Monster {NetId} using fallback BT (refName='{refName}')");
+            return MonsterAiFallbackBt.BuildRunner(this, _btBlackboard);
         }
 
         /// <summary>

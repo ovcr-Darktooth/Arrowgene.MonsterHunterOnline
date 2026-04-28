@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using Arrowgene.Logging;
 using Arrowgene.MonsterHunterOnline.Protocol.Old.Structures;
@@ -7,6 +8,7 @@ using Arrowgene.MonsterHunterOnline.Protocol.Structures;
 using Arrowgene.MonsterHunterOnline.Service.CsProto;
 using Arrowgene.MonsterHunterOnline.Service.CsProto.Core;
 using Arrowgene.MonsterHunterOnline.Service.Data;
+using Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorTree;
 
 namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
 {
@@ -21,15 +23,37 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         private SequenceManager _sequenceManager;
         private MonsterDefinitionTable _monsterDefinitions;
         private PartsTable _partsTable;
+        private MonsterAssetTable _monsterAssets;
+        private BtTreeLoader _btLoader;
         private readonly Dictionary<uint, MonsterAI> _monsters = new();
         private readonly object _lock = new();
 
-        public MonsterAIManager(ClientManager clientManager, SequenceManager sequenceManager, MonsterDefinitionTable monsterDefinitions, PartsTable partsTable)
+        public MonsterAIManager(ClientManager clientManager, SequenceManager sequenceManager, MonsterDefinitionTable monsterDefinitions, PartsTable partsTable, MonsterAssetTable monsterAssets = null, string btRootDir = null)
         {
             _clientManager = clientManager;
             _sequenceManager = sequenceManager;
             _monsterDefinitions = monsterDefinitions;
             _partsTable = partsTable;
+            _monsterAssets = monsterAssets;
+            if (!string.IsNullOrEmpty(btRootDir) && Directory.Exists(btRootDir))
+            {
+                _btLoader = new BtTreeLoader(btRootDir);
+            }
+        }
+
+        public MonsterAssetTable MonsterAssets => _monsterAssets;
+        public BtTreeLoader BtLoader => _btLoader;
+
+        /// <summary>
+        /// Resolves a server-side monster info id (spawn-point id or definition id) to its
+        /// CryEngine asset key (e.g. "em001"). Falls back to "em001" when no mapping exists
+        /// — keeps current test spawns working until every id is in the asset CSV.
+        /// </summary>
+        public string GetAssetId(int monsterInfoId)
+        {
+            return _monsterAssets != null
+                ? _monsterAssets.GetAssetId(monsterInfoId, "em001")
+                : "em001";
         }
 
         public uint NextNetId() => Interlocked.Increment(ref _nextNetId);
@@ -208,17 +232,15 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             return MathF.Sqrt(dx * dx + dy * dy + dz * dz);
         }
 
-        /// <summary>Maps MonsterInfoId to its CryEngine behavior tree path.</summary>
-        public static string GetBTState(int monsterInfoId)
+        /// <summary>
+        /// Maps MonsterInfoId to its CryEngine behavior tree relative path inside the BT root,
+        /// using the asset CSV. Returns empty when no asset is known.
+        /// </summary>
+        public string GetBTState(int monsterInfoId)
         {
-            // TODO: build a full mapping from CSV static data
-            return monsterInfoId switch
-            {
-                39002 => @"Em001\em001.xml",
-                39003 => @"Em002\em002.xml",
-                39004 => @"Em003\em003.xml",
-                _ => string.Empty,
-            };
+            string asset = _monsterAssets?.GetAssetId(monsterInfoId, null);
+            if (string.IsNullOrEmpty(asset)) return string.Empty;
+            return Path.Combine(asset, asset + ".xml");
         }
     }
 }

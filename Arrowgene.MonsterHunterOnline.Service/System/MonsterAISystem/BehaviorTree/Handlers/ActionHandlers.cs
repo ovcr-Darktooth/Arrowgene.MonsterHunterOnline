@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 
 namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorTree.Handlers
@@ -7,15 +8,136 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
     /// value is coerced through the var's declared type (so <c>Value="Idle"</c> stays
     /// a string, <c>Value="True"</c> becomes a bool, <c>Value="0.1"</c> becomes a
     /// float, etc.).
+    /// <para>
+    /// Vec3/Quat keys use the multi-attribute form <c>Value1/Value2/Value3[/Value4]</c>
+    /// — see e.g. <c>em001dashtoplayer.xml</c> setting <c>MoveSpeed</c> to
+    /// <c>Value1="0" Value2="11.1" Value3="0"</c> (local-frame forward velocity). When
+    /// <c>Value1</c> is present we compose a comma-separated string and let the
+    /// blackboard's Vec3 storage keep it raw.
+    /// </para>
     /// </summary>
     public sealed class SetBlackBoardHandler : IBtHandler
     {
         public BtStatus Tick(BtNode node, BtContext ctx)
         {
             string key = node.GetAttr("KeyName");
-            string value = node.GetAttr("Value");
             if (string.IsNullOrEmpty(key)) return BtStatus.Failure;
-            ctx.Blackboard.SetFromString(key, value);
+
+            string v1 = node.GetAttr("Value1");
+            if (!string.IsNullOrEmpty(v1))
+            {
+                string v2 = node.GetAttr("Value2") ?? "0";
+                string v3 = node.GetAttr("Value3") ?? "0";
+                string v4 = node.GetAttr("Value4");
+                string composed = v4 != null ? $"{v1},{v2},{v3},{v4}" : $"{v1},{v2},{v3}";
+                ctx.Blackboard.SetFromString(key, composed);
+                return BtStatus.Success;
+            }
+
+            ctx.Blackboard.SetFromString(key, node.GetAttr("Value"));
+            return BtStatus.Success;
+        }
+    }
+
+    /// <summary>
+    /// <c>SetBlackBoardEqualString/Float/Int KeyName1="dst" KeyName2="src"</c> — typed copy
+    /// <c>BB[dst] = BB[src]</c>. The em001 BT uses these to snapshot state across ticks, e.g.
+    /// <c>SetLastState: LastState = CurState</c> in <c>em001setstate.xml</c>.
+    /// </summary>
+    public sealed class SetBlackBoardEqualHandler : IBtHandler
+    {
+        public BtStatus Tick(BtNode node, BtContext ctx)
+        {
+            string dst = node.GetAttr("KeyName1");
+            string src = node.GetAttr("KeyName2");
+            if (string.IsNullOrEmpty(dst) || string.IsNullOrEmpty(src)) return BtStatus.Failure;
+
+            object value = ctx.Blackboard.GetRaw(src);
+            if (value == null) return BtStatus.Failure;
+
+            ctx.Blackboard.Set(dst, value);
+            return BtStatus.Success;
+        }
+    }
+
+    /// <summary>
+    /// <c>SetBlackBoardBBOPC KeyName="dst" KeyNameOP1="lhs" OP="+|-|*|/" Value="N"</c> — scalar
+    /// arithmetic <c>BB[dst] = BB[lhs] OP N</c>. em001 uses this for counters/accumulators
+    /// (<c>AttackPeriod += 1</c>, <c>EatPeriod += 1</c>, <c>TempFloat = MaxHealth * 0.35</c>).
+    /// Without this, every per-tick "bump the cooldown" stays at 0 and gating conditions like
+    /// <c>AttackPeriod &gt; N</c> never become true — the BT loops in idle/rotate forever.
+    /// </summary>
+    public sealed class SetBlackBoardBbopcHandler : IBtHandler
+    {
+        public BtStatus Tick(BtNode node, BtContext ctx)
+        {
+            string dst = node.GetAttr("KeyName");
+            string lhs = node.GetAttr("KeyNameOP1");
+            string op = node.GetAttr("OP");
+            string rhsRaw = node.GetAttr("Value");
+            if (string.IsNullOrEmpty(dst) || string.IsNullOrEmpty(lhs) || string.IsNullOrEmpty(op)) return BtStatus.Failure;
+            if (!float.TryParse(rhsRaw, NumberStyles.Float, CultureInfo.InvariantCulture, out float rhs))
+                return BtStatus.Failure;
+
+            float a = ToFloat(ctx.Blackboard.GetRaw(lhs));
+            float result = ApplyOp(a, op, rhs);
+            StoreNumeric(ctx, dst, result);
+            return BtStatus.Success;
+        }
+
+        internal static float ToFloat(object v) => v switch
+        {
+            float f => f,
+            int i => i,
+            uint u => u,
+            string s when float.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out float p) => p,
+            _ => 0f
+        };
+
+        internal static float ApplyOp(float a, string op, float b) => op switch
+        {
+            "+" => a + b,
+            "-" => a - b,
+            "*" => a * b,
+            "/" => b != 0f ? a / b : 0f,
+            _ => 0f
+        };
+
+        internal static void StoreNumeric(BtContext ctx, string key, float value)
+        {
+            // Match the declared type so downstream BlackBoardCheck comparisons line up.
+            string type = ctx.Blackboard.TypeOf(key);
+            object stored = type switch
+            {
+                "Int" => (object)(int)value,
+                "Uint32" => (object)(uint)MathF.Max(0f, value),
+                _ => value, // Float and unknown both kept as float
+            };
+            ctx.Blackboard.Set(key, stored);
+        }
+    }
+
+    /// <summary>
+    /// <c>SetBlackBoardBBOPBB KeyName="dst" KeyNameOP1="lhs" KeyNameOP2="rhs" OP="+|-|*|/"</c>
+    /// — same as BBOPC but the right-hand operand is another BB key. em001 uses it to subtract
+    /// damage from health (<c>Health = Health - HitDamageHealth</c>) and to accumulate part
+    /// damage (<c>HeadDamageSum += HitDamageHealth</c>).
+    /// </summary>
+    public sealed class SetBlackBoardBbopbbHandler : IBtHandler
+    {
+        public BtStatus Tick(BtNode node, BtContext ctx)
+        {
+            string dst = node.GetAttr("KeyName");
+            string lhs = node.GetAttr("KeyNameOP1");
+            string rhs = node.GetAttr("KeyNameOP2");
+            string op = node.GetAttr("OP");
+            if (string.IsNullOrEmpty(dst) || string.IsNullOrEmpty(lhs) || string.IsNullOrEmpty(rhs) || string.IsNullOrEmpty(op))
+                return BtStatus.Failure;
+
+            float a = SetBlackBoardBbopcHandler.ToFloat(ctx.Blackboard.GetRaw(lhs));
+            float b = SetBlackBoardBbopcHandler.ToFloat(ctx.Blackboard.GetRaw(rhs));
+            float result = SetBlackBoardBbopcHandler.ApplyOp(a, op, b);
+            SetBlackBoardBbopcHandler.StoreNumeric(ctx, dst, result);
             return BtStatus.Success;
         }
     }
@@ -87,7 +209,13 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
         {
             if (ctx.Owner is not IBtMonsterAdapter mon) return BtStatus.Failure;
 
-            string name = node.GetAttr("SequenceName") ?? node.GetAttr("Name");
+            // CryEngine BTs use AnimSequence="X" on AnimSequencePlay actions (e.g. em001's
+            // DragonDashCancel, FindPlayer, Threaten03). The legacy SequenceName attr is kept
+            // as a fallback for any XML that uses it; node.Name is the last-ditch source — the
+            // parser captures it on the node itself, not in Attributes.
+            string name = node.GetAttr("AnimSequence")
+                          ?? node.GetAttr("SequenceName")
+                          ?? node.Name;
             if (string.IsNullOrEmpty(name)) return BtStatus.Failure;
 
             PlayState state = ctx.GetOrCreateState<PlayState>(node);

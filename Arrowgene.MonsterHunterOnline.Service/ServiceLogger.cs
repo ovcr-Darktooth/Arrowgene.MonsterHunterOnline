@@ -28,6 +28,8 @@ namespace Arrowgene.MonsterHunterOnline.Service
             CS_CMD_ID.CS_CMD_UPDATE_RUSHSTATE,
             CS_CMD_ID.CS_CMD_BATTLE_MONSTER_LOCOMOTION,
             CS_CMD_ID.CS_CMD_SYSTEM_ENCRYPT_DATA,
+            CS_CMD_ID.CS_CMD_BATTLE_MONSTER_MOVESTATE,
+            CS_CMD_ID.CS_CMD_BATTLE_MONSTER_SEQUENCESTATE,
 
         };
 

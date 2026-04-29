@@ -40,6 +40,16 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
 
             // Actions with real logic.
             registry.RegisterAction("SetBlackBoard", new SetBlackBoardHandler());
+            // Typed copy variants — em001 uses these to snapshot/swap state across ticks.
+            var setEqual = new SetBlackBoardEqualHandler();
+            registry.RegisterAction("SetBlackBoardEqualString", setEqual);
+            registry.RegisterAction("SetBlackBoardEqualFloat", setEqual);
+            registry.RegisterAction("SetBlackBoardEqualInt", setEqual);
+            // Numeric arithmetic — em001 counters (AttackPeriod, EatPeriod) and damage
+            // accumulators rely on these. Without them the counter loops never advance and
+            // gating conditions like AttackPeriod>N never fire, locking the BT in idle.
+            registry.RegisterAction("SetBlackBoardBBOPC", new SetBlackBoardBbopcHandler());
+            registry.RegisterAction("SetBlackBoardBBOPBB", new SetBlackBoardBbopbbHandler());
             registry.RegisterAction("SetTime", new SetTimeHandler());
             registry.RegisterAction("DelayTime", new DelayTimeHandler());
             registry.RegisterAction("AnimSequencePlay", new AnimSequencePlayHandler());
@@ -111,11 +121,11 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
             "SendMsgToClass",
             "SendStateToClient",
             "SetArea",
-            "SetBlackBoardBBOPBB",
-            "SetBlackBoardBBOPC",
-            "SetBlackBoardEqualFloat",
-            "SetBlackBoardEqualInt",
-            "SetBlackBoardEqualString",
+            // SetBlackBoardBBOPBB — Phase 6.6.5 (real arithmetic)
+            // SetBlackBoardBBOPC — Phase 6.6.5 (real arithmetic)
+            // SetBlackBoardEqualFloat — Phase 6.6.5 (typed copy)
+            // SetBlackBoardEqualInt — Phase 6.6.5 (typed copy)
+            // SetBlackBoardEqualString — Phase 6.6.5 (typed copy)
             "SetPathLength",
             "SetPathPointByIndex",
             // SetTarget — Phase 6.6.3 (TargetingHandlers)

@@ -413,8 +413,22 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             if (_sequenceTime >= _currentSequence.TimeRange)
             {
                 Logger.Debug($"Monster {NetId} finished sequence {_currentSequence.Name}");
+                string endedSeq = _currentSequence.Name;
                 _currentSequence = null;
-                _lastAppliedMoveType = null; // allow BT to re-emit the same MoveType for a new round
+
+                // Idle Locomotion at sequence end. Without it the client keeps the previous
+                // dash/attack anim hanging on its last frame because MoveSpeed in the LCM
+                // packet is non-zero and AnimSeqName is the prior sequence. Sending an empty
+                // sequence name + zero speed tells the client "monster is stationary now".
+                CSVec3 zeroSpeed = new(0, 0, 0);
+                CSQuat curRot = _sequenceStartRot ?? new CSQuat(1f, 0f, 0f, 0f);
+                SendLocomotion(Position, curRot, Position, zeroSpeed, string.Empty, 0, false, false);
+                SendMovestate(Position, curRot, zeroSpeed);
+
+                // Do NOT reset _lastAppliedMoveType here. The BT keeps writing MoveType="DragonDash"
+                // (or whatever) inside its UntilLoopBreak; resetting would re-fire the same sequence
+                // every tick. The bridge re-fires only when the BT writes a *different* MoveType
+                // (e.g. "None" via the cancel path, or a new attack name).
                 return false;
             }
 
@@ -462,8 +476,10 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
         /// <item><c>MoveType</c> string set to a known sequence name (DragonDash, BeaverRoll,
         /// RotateAttack, …) AND no sequence currently locked → start that sequence. Guarded
         /// by <see cref="_lastAppliedMoveType"/> so we only fire on a change.</item>
-        /// <item>When the locked sequence ends, <see cref="_lastAppliedMoveType"/> is cleared
-        /// so the next BT-driven MoveType change can re-trigger.</item>
+        /// <item><see cref="_lastAppliedMoveType"/> is NOT cleared at sequence end — the BT
+        /// keeps the same MoveType written across the whole UntilLoopBreak run, and re-firing
+        /// the same sequence on every tick is what produced the "dash freeze" loop. The bridge
+        /// only re-fires when the BT writes a *different* MoveType.</item>
         /// </list>
         ///
         /// In CryEngine the equivalent is the per-monster Locomotion sub-system that watches
@@ -478,7 +494,15 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             string moveType = _btBlackboard.GetString("MoveType");
             if (string.IsNullOrEmpty(moveType)) return;
             if (string.Equals(moveType, _lastAppliedMoveType, StringComparison.Ordinal)) return;
-            if (!_sequenceSet.Sequences.ContainsKey(moveType)) return; // not a sequence name we know
+
+            // BT cancel paths write MoveType="None" (or any non-sequence value) to signal the
+            // current locomotion intent has ended. Clear the latch so the next concrete sequence
+            // name — even if it matches the previous one — triggers a fresh fire.
+            if (!_sequenceSet.Sequences.ContainsKey(moveType))
+            {
+                _lastAppliedMoveType = moveType;
+                return;
+            }
 
             if (TryStartSequence(moveType))
             {
@@ -646,18 +670,59 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem
             if (_sequenceSet == null || !_sequenceSet.Sequences.TryGetValue(sequenceName, out var seq))
                 return false;
 
-            CSQuat rot = _sequenceStartRot ?? new CSQuat(1f, 0, 0, 0);
-            CSVec3 zeroSpeed = new(0, 0, 0);
-            SendLocomotion(Position, rot, Position, zeroSpeed, sequenceName, 0, true, true);
-            SendMovestate(Position, rot, zeroSpeed);
+            // Mirror StartAttack: when we have a target, face it and pass its position as the
+            // dash/attack endpoint. Without this, _sequenceStartYaw=0 sends the baked root-motion
+            // along world +X regardless of player direction, and TargetAttackPos==MonsterPos
+            // freezes the client-side animation (no endpoint to extrapolate to).
+            CSQuat rot;
+            float yawStart;
+            CSVec3 targetPos;
+            if (_lastTarget != null)
+            {
+                targetPos = _lastTarget.State.Position ?? _lastTarget.State.InitSpawnPos ?? Position;
+                rot = LookAtQuat(Position, targetPos);
+                yawStart = MathF.Atan2(targetPos.y - Position.y, targetPos.x - Position.x);
+            }
+            else
+            {
+                rot = _sequenceStartRot ?? new CSQuat(1f, 0, 0, 0);
+                yawStart = _sequenceStartYaw;
+                targetPos = Position;
+            }
+
+            // Build a real world-space velocity vector for movement-type sequences. The master
+            // BT writes MoveSpeed as a Vec3 in the **local** frame (X=right, Y=forward, Z=up):
+            // e.g. em001dashtoplayer.xml stores (0, 11.1, 0) → 11.1 m/s forward. Without this
+            // the LCM packet ships a zero velocity and the client's locomotion machine has
+            // nothing to advance, so dash anims play their first frame and freeze.
+            CSVec3 moveSpeed = new(0, 0, 0);
+            (float msx, float msy, float msz) = (0f, 0f, 0f);
+            if (_btBlackboard != null)
+            {
+                (msx, msy, msz) = _btBlackboard.GetVec3("MoveSpeed");
+                if (MathF.Abs(msx) > 0.0001f || MathF.Abs(msy) > 0.0001f || MathF.Abs(msz) > 0.0001f)
+                {
+                    // Same local→world transform as AdvanceLockedSequence's root-motion replay.
+                    float c = MathF.Cos(yawStart);
+                    float s = MathF.Sin(yawStart);
+                    float wsx = msx * s + msy * c;
+                    float wsy = -msx * c + msy * s;
+                    moveSpeed = new CSVec3(wsx, wsy, msz);
+                }
+            }
+
+            SendLocomotion(Position, rot, targetPos, moveSpeed, sequenceName, 0, true, true);
+            SendMovestate(Position, rot, moveSpeed);
             BroadcastSequenceState(sequenceName, 0f, Position, rot);
 
             _sequenceStartPos = CloneVec(Position);
             _sequenceStartRot = rot;
-            _sequenceStartYaw = 0f;
+            _sequenceStartYaw = yawStart;
             _currentSequence = seq;
             _sequenceTime = 0f;
             _sequenceLocalOrigin = seq.Position.HasAny ? seq.Position.Sample(0f) : (0f, 0f, 0f);
+
+            Logger.Info($"Monster {NetId} TryStartSequence '{sequenceName}': posCurve={seq.Position.HasAny} timeRange={seq.TimeRange:F2}s bbMoveSpeedLocal=({msx:F2},{msy:F2},{msz:F2}) world=({moveSpeed.x:F2},{moveSpeed.y:F2},{moveSpeed.z:F2}) yaw={yawStart:F2} target=({targetPos.x:F1},{targetPos.y:F1})");
             return true;
         }
 

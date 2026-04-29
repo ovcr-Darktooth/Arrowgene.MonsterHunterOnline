@@ -59,6 +59,22 @@ namespace Arrowgene.MonsterHunterOnline.Service.System.MonsterAISystem.BehaviorT
         public float GetFloat(string key) => _values.TryGetValue(key, out object v) && v is float f ? f : 0f;
         public string GetString(string key) => _values.TryGetValue(key, out object v) ? v as string : null;
 
+        /// <summary>
+        /// Reads a Vec3 BB key as (x, y, z). Vec3 is stored as a comma-separated string
+        /// ("x,y,z") per <see cref="ParseValue"/>; this parses on demand. Returns (0,0,0)
+        /// when the key is missing or malformed.
+        /// </summary>
+        public (float x, float y, float z) GetVec3(string key)
+        {
+            if (!_values.TryGetValue(key, out object v) || v is not string s) return (0f, 0f, 0f);
+            string[] parts = s.Split(',');
+            if (parts.Length < 3) return (0f, 0f, 0f);
+            float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float x);
+            float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float y);
+            float.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out float z);
+            return (x, y, z);
+        }
+
         public void Set(string key, object value)
         {
             _values[key] = value;

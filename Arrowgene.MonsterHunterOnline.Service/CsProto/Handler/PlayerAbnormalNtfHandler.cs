@@ -11,6 +11,10 @@ namespace Arrowgene.MonsterHunterOnline.Service.CsProto.Handler;
 /// Client-authoritative knockdown/ragdoll state upload. Follows a 709 when the hit
 /// triggers a reaction. We store it on the session, log it to build a buff-ID catalog,
 /// and rebroadcast so other clients see the downed animation.
+///
+/// Position resync after a knockback is handled by the client via
+/// CS_CMD_BATTLE_ACTOR_IDLEMOVE (cmd 646) once the abnormal state expires; no
+/// server-side synthesis is required here.
 /// </summary>
 public class PlayerAbnormalNtfHandler : CsProtoStructureHandler<CSPlayerAbnormalNtf>
 {
